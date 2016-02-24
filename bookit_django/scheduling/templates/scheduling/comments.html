@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block main %}
+
+{% if message_objs %}
+    <div class="message-holder">
+        {% for msg in message_objs %}
+            <div class="message-obj{% if msg.critical %} critical{% endif %}">
+                {{ msg.msg }}
+                <span>Posted by: {{ msg.user}} on {{ msg.created }}</span>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+{% endblock %}

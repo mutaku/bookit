@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block main %}
+
+<div class="nav-links">
+	<a href="/scheduling/calendar/month/{{ navigation_data.equipment }}/?year={{ calendar_data.last.year }}&month={{ calendar_data.last.month }}">&#8612; {{ calendar_data.last.month_name }}</a>
+	<a href="/scheduling/calendar/month/{{ navigation_data.equipment }}/?year={{ calendar_data.actual.year }}&month={{ calendar_data.actual.month }}">&middot; Current Month &middot;</a>
+	<a href="/scheduling/calendar/month/{{ navigation_data.equipment }}/?year={{ calendar_data.next.year }}&month={{ calendar_data.next.month }}">{{ calendar_data.next.month_name }} &#8614;</a>
+</div>
+<div class="event-legend">
+	<ul>
+		<li class="expired">Expired/Canceled</li>
+		<li class="maintenance">Maintenance</li>
+		<li class="active">Active</li>
+		<li class="today">Today</li>
+	</ul>
+</div>
+<div style="float:clear;"></div>
+<div class="equipment-filter">
+	<ul>Equipment Select {% for e in equipment_list %}
+		<li>
+			{% if e.name == navigation_data.equipment %} * {{ e.name }} {% else %}
+			<a href="/scheduling/calendar/month/{{ e.name }}/?year={{ calendar_data.current.year }}&month={{ calendar_data.current.month }}">{{ e.name }}</a></li>
+		{% endif %} {% endfor %}
+	</ul>
+</div>
+
+{{ month_calendar | safe }}
+
+{% endblock %}

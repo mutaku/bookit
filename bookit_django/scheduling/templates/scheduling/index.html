@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block main %}
+
+<div id="banner">Welcome to Bookit.</div>
+<div id="nav-layout">
+    <div class="nav-layout-item">Book a slot on available equipment:
+        <ul>
+            {% for equipment in equipment_list %}
+                <li><a href="/scheduling/calendar/month/{{ equipment.name }}">{{ equipment.name }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="nav-layout-item">Submit a repair ticket:
+        <ul>
+            {% for equipment in equipment_list %}
+                <li><a href="/admin/scheduling/ticket/add/?equipment={{ equipment.id }}">{{ equipment.name }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="nav-layout-item">View equipment details and status:
+        <ul>
+            {% for equipment in equipment_list %}
+                <li><a href="/scheduling/equipment/{{ equipment.id }}">{{ equipment.name }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+<div id="previews-container">
+    <div id="equipment-status-preview">Equipment status:
+        <ul>
+            {% for equipment in equipment_list %}
+                <li class="{{ equipment.status }}">{{ equipment.name }} -
+                    {% if equipment.status %}
+                        &#9989; <span>Next booking: {{ equipment.next_booking.start_timestring }}</span>
+                    {% else %}&#10071; <span class="warning">offline</span>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div id="msg-box-preview">
+        <div class="message-holder">Recent messages:
+            {% for msg in message_objs %}
+                <div class="message-obj{% if msg.critical %} critical{% endif %}">
+                    {{ msg.msg }}
+                    <span>Posted by: {{ msg.user}} on {{ msg.created }}</span>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

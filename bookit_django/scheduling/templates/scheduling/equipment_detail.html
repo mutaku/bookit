@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block main %}
+
+<div id="equipment-detail-list">
+    <ul class="equipment-details"> {{ equipment.name }}
+    {% for name, value in equipment.get_fields %}
+        {% if value %}
+        <li>{{ name|capfirst }}: 
+            {% if name == 'brand' %} {{ equipment.brand.name }}
+            {% elif name == 'model' %} {{ equipment.model.name }}
+            {% else %} {{ value }}
+            {% endif %}
+        </li>
+        {% endif %}
+    {% endfor %}
+    </ul>
+    {% if equipment.component.all.count != 0 %}
+    <ul> Components
+        {% for component in equipment.component.all %}
+        <ul class="component-details"> {{ component.name }}
+        {% for name, value in component.get_fields %}
+            {% if value %}
+            <li>{{ name|capfirst }}: 
+                {% if name == 'brand' %} {{ equipment.brand.name }}
+                {% elif name == 'model' %} {{ equipment.model.name }}
+                {% else %} {{ value }}
+                {% endif %}
+            </li>
+            {% endif %}
+        {% endfor %}
+        </ul>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</div>
+{% endblock %}
