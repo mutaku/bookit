@@ -5,10 +5,10 @@ from django.utils.html import conditional_escape as esc
 from calendar import HTMLCalendar
 from datetime import date, datetime
 from itertools import groupby
+from django.conf import settings
 
 # Maybe move these to settings
-EMAIL_FROM = 'bookit@t04u.be'
-
+EMAIL_FROM = settings.DEFAULT_FROM_EMAIL
 
 def check_add_link_status(year, month, day):
     '''Check whether we should provide an add link'''
@@ -135,7 +135,7 @@ def maintenance_announcement(obj):
     msg = '''{0.equipment.name} has been scheduled for
     emergency maintenance from {0.start_time} to {0.end_time}.
     If this has affected your scheduled booking, you will reserve
-    a separate email notifying you of this change.'''.format(object)
+    a separate email notifying you of this change.'''.format(obj)
     subj = '''{0.equipment.name} has been scheduled for
     emergency maintenance'''.format(obj)
     recips = get_all_user_emails()
@@ -148,13 +148,14 @@ def maintenance_cancellation(obj):
     has been cancelled due to an emergency maintenance procedure.
     Please contact the admin for further information.'''.format(obj)
     subj = '{0.start_time} emergency maintenance cancellation'.format(obj)
-    send_mail(subj, msg, EMAIL_FROM, obj.user.email, fail_silently=False)
+    send_mail(subj, msg, EMAIL_FROM, [obj.user.email], fail_silently=False)
 
 
 def ticket_email(obj):
     '''Email superusers to inform of a new ticket or comment'''
     msg = '''{0.user.username} has created/edited
-    a new ticket {0.id} for {0.equipment.name}'''.format(obj)
+    a new ticket {0.id} for {0.equipment.name} - {0.get_absolute_full_url}
+    '''.format(obj)
     subj = '{0.equipment.name} has a new ticket'.format(obj)
     recips = get_superuser_emails()
     send_mail(subj, msg, EMAIL_FROM, recips, fail_silently=False)
@@ -165,13 +166,14 @@ def ticket_status_toggle_email(obj):
     msg = '''Your ticket created on {0.created} has changed
     status to closed={0.status}'''.format(obj)
     subj = '{0.created} ticket updated'.format(obj)
-    send_mail(subj, msg, EMAIL_FROM, obj.user.email, fail_silently=False)
+    send_mail(subj, msg, EMAIL_FROM, [obj.user.email], fail_silently=False)
 
 
 def message_email(obj):
-    '''Email superusers to inform of a new ticket or comment'''
+    '''Email all users about new message'''
     msg = '''{0.user.username} has created a new message
-    on {0.created}: {0.msg}'''.format(obj)
+    on {0.created}: {0.msg}
+    {0.get_absolute_full_url}'''.format(obj)
     subj = 'New Bookit message from {0.user.username}'.format(obj)
     recips = get_all_user_emails()
     send_mail(subj, msg, EMAIL_FROM, recips, fail_silently=False)
@@ -200,7 +202,19 @@ def deleted_event_mail(obj):
 def new_event_mail(obj):
     '''Email user of their newly scheduled event'''
     msg = '''You have successfully booked {0.equipment.name}
-    for {0.start_timestring} - {0.end_timestring}.'''.format(obj)
+    for {0.start_timestring} - {0.end_timestring}. {0.get_absolute_full_url}
+    '''.format(obj)
     # Maybe add the admin URL to this email for convenience
-    subj = 'You booked {0.equipment.name} starting {0.orig_start}'.format(obj)
-    send_mail(subj, msg, EMAIL_FROM, obj.user.email, fail_silently=False)
+    subj = 'You booked {0.equipment.name} starting {0.start_timestring}'.\
+           format(obj)
+    send_mail(subj, msg, EMAIL_FROM, [obj.user.email], fail_silently=False)
+
+
+def event_reminder_mail(obj):
+    '''Email user to remind them of their event today'''
+    msg = '''This is a reminder email from Bookit that you have an
+    event scheduled today at {0.start_timestring}. {0.get_absolute_full_url}
+    '''.format(obj)
+    subj = 'Bookit reminder: {0.equipment.name} at {0.start_timestring}'.\
+           format(obj)
+    send_mail(subj, msg, EMAIL_FROM, [obj.user.email], fail_silently=False)

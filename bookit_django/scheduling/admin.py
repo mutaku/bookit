@@ -2,11 +2,14 @@ from django.contrib import admin, messages
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.utils import timezone
-from django.core.exceptions import PermissionDenied
+from functools import partial
+from django import forms
+from django.core.exceptions import PermissionDenied, ValidationError
 from .models import Event, Equipment, Message, Ticket, Comment,\
     Service, Component, Brand, Model
 from .utils import changed_event_mail, deleted_event_mail,\
-    new_event_mail, ticket_email, message_email, ticket_status_toggle_email
+    new_event_mail, ticket_email, message_email, ticket_status_toggle_email,\
+    maintenance_announcement
 
 
 def toggle_boolean(modeladmin, request, queryset, field):
@@ -14,6 +17,20 @@ def toggle_boolean(modeladmin, request, queryset, field):
     for obj in queryset:
         setattr(obj, field, not getattr(obj, field))
         obj.save()
+
+
+# class EventForm(forms.ModelForm):
+#     '''Tweak event form for validation'''
+#     def __init__(self, *args, **kwargs):
+#         self.user = kwargs.pop('user', None)
+#         super(EventForm, self).__init__(*args, **kwargs)
+#
+#     def clean(self):
+#         '''Tweak cleaning validation'''
+#         if self.user not in self.equipment.users.all():
+#             raise ValidationError(
+#               'You do not have access to this instrument.')
+#         return self.cleaned_data
 
 
 @admin.register(Event)
@@ -77,27 +94,35 @@ class EventAdmin(admin.ModelAdmin):
             self.exclude = ('maintenance', 'expired', 'status',)
         return super(EventAdmin, self).get_fields(request, obj, **kwargs)
 
+    def get_form(self, request, obj=None, **kwargs):
+        '''Overide form getting'''
+        form = super(EventAdmin, self).get_form(request, obj, **kwargs)
+        form.base_fields['equipment'].queryset = \
+            form.base_fields['equipment'].\
+            queryset.filter(users=request.user)
+        return form
+
     def save_model(self, request, obj, form, change):
         '''Adjust some values on save'''
         if getattr(obj, 'user', None) is None:
             obj.user = request.user
+        if obj.user not in obj.equipment.users.all():
+            raise PermissionDenied(
+                request,
+                'You are not authorized for this instrument.')
         elapsed_td = (obj.end_time - obj.start_time).seconds
         obj.elapsed_hours = round(float(elapsed_td / 3600.0), 2)
         if obj.pk is None and not obj.maintenance:
             self.message_user(request,
                               "Created {}".format(obj.start_timestring),
                               messages.SUCCESS)
-            # This should morph into the email regarding changed times
-            #   but for now it is messaging for debugging purposes
-            # new_event_mail(obj)
+            new_event_mail(obj)
         if obj.pk is None and obj.maintenance and request.user.is_superuser:
             self.message_user(request,
                               "Maintence scheduled {}".format(
                                 obj.start_timestring),
                               messages.SUCCESS)
-            # This should morph into the email regarding changed times
-            #   but for now it is messaging for debugging purposes
-            # maintenance_announcement(obj)
+            maintenance_announcement(obj)
         elif (any(f in ['start_time', 'end_time'] for
                   f in form.changed_data) and
               all(x is not None for x in
@@ -106,9 +131,7 @@ class EventAdmin(admin.ModelAdmin):
                               "changed from {} - {}".format(obj.orig_start,
                                                             obj.orig_end),
                               messages.SUCCESS)
-            # This should morph into the email regarding changed times
-            #   but for now it is messaging for debugging purposes
-            # changed_event_mail(obj)
+            changed_event_mail(obj)
         super(EventAdmin, self).save_model(request, obj, form, change)
 
     def get_queryset(self, request):
@@ -124,9 +147,7 @@ class EventAdmin(admin.ModelAdmin):
             raise PermissionDenied
         self.message_user(request, "Deleted {}".format(obj.id),
                           messages.SUCCESS)
-        # This should morph into the email regarding changed times
-        #   but for now it is messaging for debugging purposes
-        # deleted_event_mail(obj)
+        deleted_event_mail(obj)
         super(EventAdmin, self).delete_model(request, obj)
 
     def response_add(self, request, obj, post_url_continue=None):
@@ -211,7 +232,19 @@ class ComponentAdmin(admin.ModelAdmin):
 class ServiceAdmin(admin.ModelAdmin):
     '''Service record management'''
     exclude = ('user',)
-    list_display = ('date', 'user', 'equipment', 'model', 'success')
+    list_display = ('date', 'user', 'equipment',
+                    'component', 'short_job_title',
+                    'completed', 'success')
+    list_filter = ('completed', 'success', 'equipment')
+    actions = ['toggle_completed', 'toggle_success']
+
+    def toggle_success(self, request, queryset):
+        '''Toggle ticket priority'''
+        toggle_boolean(self, request, queryset, 'success')
+
+    def toggle_completed(self, request, queryset):
+        '''Toggle ticket priority'''
+        toggle_boolean(self, request, queryset, 'completed')
 
     def save_model(self, request, obj, form, change):
         '''Adjust some values on save'''
@@ -228,6 +261,12 @@ class EquipmentAdmin(admin.ModelAdmin):
     inlines = [ComponentInline]
     exclude = ('component',)
 
+    def get_fields(self, request, obj=None, **kwargs):
+        '''Overide field getting'''
+        if not request.user.is_superuser:
+            self.readonly_fields = ('admin',)
+        return super(EquipmentAdmin, self).get_fields(request, obj, **kwargs)
+
 
 class CommentInline(admin.TabularInline):
     '''Comments to attach to a ticket'''
@@ -241,6 +280,7 @@ class CommentInline(admin.TabularInline):
         return super(CommentInline, self).formfield_for_foreignkey(db_field,
                                                                    request,
                                                                    **kwargs)
+
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
@@ -347,9 +387,7 @@ class TicketAdmin(admin.ModelAdmin):
         #     form.cleaned_data['comment'] = self.comment.all()
         self.message_user(request, "Ticket {}".format(obj.id),
                           messages.SUCCESS)
-        # This should morph into the email regarding changed times
-        #   but for now it is messaging for debugging purposes
-        # ticket_email(obj)
+        ticket_email(obj)
         super(TicketAdmin, self).save_model(request, obj, form, change)
 
 
@@ -363,15 +401,12 @@ class MessageAdmin(admin.ModelAdmin):
         '''Adjust some values on save'''
         if getattr(obj, 'user', None) is None and obj.pk is None:
             obj.user = request.user
-            # ADD EMAIL TO ALL USERS HERE REGARDING NEW MESSAGE
         elif (obj.pk and obj.user != request.user and
               not request.user.is_superuser):
             raise PermissionDenied
         self.message_user(request, "New message {}".format(obj.id),
                           messages.SUCCESS)
-        # This should morph into the email regarding changed times
-        #   but for now it is messaging for debugging purposes
-        # message_email(obj)
+        message_email(obj)
         super(MessageAdmin, self).save_model(request, obj, form, change)
 
     def delete_model(self, request, obj):

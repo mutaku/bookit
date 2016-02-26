@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% block title %}Bookit - {{ equipment.name }} details{% endblock %}
+
 {% block main %}
 
 <div id="equipment-detail-list">
@@ -9,11 +11,19 @@
         <li>{{ name|capfirst }}: 
             {% if name == 'brand' %} {{ equipment.brand.name }}
             {% elif name == 'model' %} {{ equipment.model.name }}
+            {% elif name == 'admin' %} {{ equipment.admin.username }} - 
+                <a href="mailto:{{ equipment.admin.email }}" target="_blank">contact &#9993;</a>
             {% else %} {{ value }}
             {% endif %}
         </li>
         {% endif %}
     {% endfor %}
+        <li class="users-list">Users:
+            {% for user in equipment.user_names_list %}
+                {% if not forloop.first %}, {% endif %}
+                {{ user }}
+            {% endfor %}
+        </li>
     </ul>
     {% if equipment.component.all.count != 0 %}
     <ul> Components

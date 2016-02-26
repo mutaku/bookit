@@ -3,6 +3,8 @@ from django.shortcuts import render,\
 from .utils import jsonify_schedule, EventCalendar
 from django.http import HttpResponse
 from django.views.generic.detail import DetailView
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render
 from .models import Event, Equipment, Message
 import calendar
@@ -26,13 +28,14 @@ from datetime import datetime
 #     return year
 
 
-class EquipmentDetailView(DetailView):
+class EquipmentDetailView(LoginRequiredMixin, DetailView):
     '''Detailed view of an instrument'''
 
     model = Equipment
     template_name = 'scheduling/equipment_detail.html'
 
 
+@login_required
 def month_view(request, equipment):
     '''Main calendar view'''
     year = request.GET.get('year', None)
@@ -87,6 +90,7 @@ def month_view(request, equipment):
     return render(request, 'scheduling/calendar.html', context)
 
 
+@login_required
 def message_board(request):
     '''Message board view'''
     message_objs = Message.objects.all().order_by('-created')
@@ -94,17 +98,20 @@ def message_board(request):
     return render(request, 'scheduling/comments.html', context)
 
 
+@login_required
 def main_view(request):
     '''Main landing view'''
     equipment_list = Equipment.objects.all()
-    message_objs = Message.objects.all().order_by('-created')[:5]
+    message_objs = Message.objects.all().order_by('-created')[:3]
     context = {'message_objs': message_objs,
                'equipment_list': equipment_list}
     return render(request, 'scheduling/index.html', context)
 
 
 def json_events(request, equipment):
-    '''JSON event list'''
+    '''JSON event list -
+    No login currently required so as to use as pubically
+    available API (of sorts)'''
     if equipment is not None:
         event_list = get_list_or_404(Event, equipment__name=equipment)
         return HttpResponse(jsonify_schedule(event_list))

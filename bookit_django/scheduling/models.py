@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.contrib.auth.models import User
+from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from datetime import timedelta, datetime
@@ -63,6 +64,14 @@ class Equipment(models.Model):
     '''Available Equipment for Scheduling'''
     name = models.CharField("Equipment",
                             max_length=40)
+    admin = models.ForeignKey(User,
+                              related_name="equipment_admin",
+                              limit_choices_to={
+                                'groups__name': 'equipment_admin'})
+    users = models.ManyToManyField(User,
+                                   related_name="equipment_user",
+                                   limit_choices_to={
+                                    'groups__name': 'equipment_user'})
     description = models.TextField("Description",
                                    blank=True,
                                    null=True)
@@ -84,6 +93,11 @@ class Equipment(models.Model):
     #     return Service.objects.filter(equipment=self).order_by('-date')[0]
 
     @property
+    def user_names_list(self):
+        '''List of allowed users'''
+        return [str(user.username) for user in self.users.all()]
+
+    @property
     def next_booking(self):
         '''Rip down next booking for this instrument'''
         return find_next_booking(self)
@@ -92,6 +106,16 @@ class Equipment(models.Model):
         '''Generate field names and values for templates'''
         return get_model_fields(self)
 
+    @property
+    def get_admin_url(self):
+        '''Generate admin URL'''
+        return '/admin/scheduling/equipment/{}/change/'.format(self.id)
+
+    @property
+    def get_absolute_full_url(self):
+        '''Compile a full, absolute URL'''
+        domain = Site.objects.get_current().domain.rstrip('/')
+        return 'http://{}{}'.format(domain, self.get_admin_url)
 
     def __unicode__(self):
         '''Unicode return'''
@@ -147,15 +171,35 @@ class Service(models.Model):
                                   null=True,
                                   blank=True)
     job = models.TextField("Job")
+    completed = models.BooleanField("Completed",
+                                    default=False)
     success = models.BooleanField("Success",
-                                  default=True)
+                                  default=False)
     notes = models.TextField("Notes",
                              blank=True,
                              null=True)
 
+    @property
+    def short_job_title(self):
+        '''shortified (TM) version of job title'''
+        return self.job[:40]
+
     def __unicode__(self):
         '''Unicode return'''
-        return '{} - {}'.format(self.date, self.job)
+        return '{} - {} - completed: {}'.format(self.date,
+                                                self.job,
+                                                self.completed)
+
+    @property
+    def get_admin_url(self):
+        '''Generate admin URL'''
+        return '/admin/scheduling/service/{}/change/'.format(self.id)
+
+    @property
+    def get_absolute_full_url(self):
+        '''Compile a full, absolute URL'''
+        domain = Site.objects.get_current().domain.rstrip('/')
+        return 'http://{}{}'.format(domain, self.get_admin_url)
 
     def get_fields(self):
         '''Generate field names and values for templates'''
@@ -178,6 +222,17 @@ class Message(models.Model):
                                     editable=False)
     critical = models.BooleanField("Critical",
                                    default=False)
+
+    @property
+    def get_admin_url(self):
+        '''Generate admin URL'''
+        return '/scheduling/messages/#msg-{}'.format(self.id)
+
+    @property
+    def get_absolute_full_url(self):
+        '''Compile a full, absolute URL'''
+        domain = Site.objects.get_current().domain.rstrip('/')
+        return 'http://{}{}'.format(domain, self.get_admin_url)
 
     def get_fields(self):
         '''Generate field names and values for templates'''
@@ -214,9 +269,15 @@ class Ticket(models.Model):
         return self.comment.all().count()
 
     @property
-    def admin_url(self):
-        '''Generate an admin URL for this ticket'''
-        return '/admin/scheduling/ticket/{0}/change/'.format(self.id)
+    def get_admin_url(self):
+        '''Generate admin URL'''
+        return '/admin/scheduling/ticket/{}/change/'.format(self.id)
+
+    @property
+    def get_absolute_full_url(self):
+        '''Compile a full, absolute URL'''
+        domain = Site.objects.get_current().domain.rstrip('/')
+        return 'http://{}{}'.format(domain, self.get_admin_url)
 
     def get_fields(self):
         '''Generate field names and values for templates'''
@@ -311,9 +372,15 @@ class Event(models.Model):
         return str(self.end_time)
 
     @property
-    def admin_url(self):
-        '''Generate an admin URL for this event'''
-        return '/admin/scheduling/event/{0}/change/'.format(self.id)
+    def get_admin_url(self):
+        '''Generate admin URL'''
+        return '/admin/scheduling/event/{}/change/'.format(self.id)
+
+    @property
+    def get_absolute_full_url(self):
+        '''Compile a full, absolute URL'''
+        domain = Site.objects.get_current().domain.rstrip('/')
+        return 'http://{}{}'.format(domain, self.get_admin_url)
 
     @property
     def start_timestamp(self):
@@ -333,6 +400,9 @@ class Event(models.Model):
     def clean(self, *args, **kwargs):
         '''Add some custom validation'''
         super(Event, self).clean(*args, **kwargs)
+        if not self.equipment.status:
+            raise ValidationError('{} is offline.'.format(
+                self.equipment.name))
         if self.end_time <= self.start_time:
             raise ValidationError('End time must be later than start.')
         if not self.id and self.start_time < timezone.now():

@@ -1,229 +1,275 @@
 body {
-    font-family: 'PT Sans', sans-serif;
+	font-family: 'PT Sans', sans-serif;
 }
 
 table {
-    background: #fff;
-    border-collapse: collapse;
-    color: #222;
-    font-family: 'PT Sans', sans-serif;
-    font-size: 13px;
-    width: 100%;
-    height: 775px;
+	background: #fff;
+	border-collapse: collapse;
+	color: #222;
+	font-family: 'PT Sans', sans-serif;
+	font-size: 13px;
+	width: 100%;
+	height: 775px;
 }
 
 th {
-    height: 10px;
+	height: 10px;
 }
 
 tr:nth-child(-n+2) {
-    height: 10px;
+	height: 10px;
 }
 
 tr:nth-child(n+3) {
-    height: 150px;
+	height: 150px;
 }
 
 td:nth-child(n+1) {
-    width: 150px;
-    border: 1px solid #ccc;
-    color: #444;
-    line-height: 22px;
-    text-align: center;
-    height: 148px;
+	width: 150px;
+	border: 1px solid #ccc;
+	color: #444;
+	line-height: 22px;
+	text-align: center;
+	height: 148px;
 }
 
 td.sun,
 td.sat {
-    background: aliceblue;
+	background: aliceblue;
 }
 
 td.noday {
-    background: lightgray;
+	background: lightgray;
 }
 
 td.today {
-    background: lavender;
-    border: 2px solid mediumslateblue;
+	background: lavender;
+	border: 2px solid mediumslateblue;
 }
 
 .ui-tooltip {
-    white-space: pre-line;
+	white-space: pre-line;
 }
 
 table ul {
-    list-style-type: none;
-    margin: 2px;
-    padding: 0px;
-    border: 1px dashed purple;
-    background: thistle;
-    height: 90px;
-    overflow: scroll;
+	list-style-type: none;
+	margin: 2px;
+	padding: 0px;
+	border: 1px solid plum;
+	background: thistle;
+	height: 90px;
+	overflow: scroll;
 }
 
 .expired {
-    background: snow;
+	background: snow;
 }
 
 .maintenance {
-    background: red;
+	background: red;
 }
 
 .active {
-    background: thistle;
+	background: thistle;
 }
 
 .today {
-    background: lavender;
+	background: lavender;
 }
 
 table ul li {
-    padding: 8px 16px;
-    border-bottom: 1px dashed purple;
+	padding: 8px 16px;
+	border-bottom: 1px solid purple;
 }
 
-table ul li:hover {
-    background: turquoise;
-}
+table ul li:hover {}
 
 table ul li:last-child {
-    border-bottom: none;
+	border-bottom: none;
 }
 
 a {
-    text-decoration: none;
-    color: black;
-    font-weight: bold;
+	text-decoration: none;
+	color: black;
+	font-weight: bold;
 }
 
 .neweventadd {
-    color: salmon;
-    margin: 0 0 0 50px;
+	color: salmon;
+	margin: 0 0 0 50px;
 }
 
 .selected {
-    background: #f0951d;
-    border: 0;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, .5) inset;
+	background: #f0951d;
+	border: 0;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, .5) inset;
 }
 
 ::-webkit-scrollbar {
-    -webkit-appearance: none;
-    width: 7px;
+	-webkit-appearance: none;
+	width: 7px;
 }
 
 ::-webkit-scrollbar-thumb {
-    border-radius: 4px;
-    background-color: rgba(0, 0, 0, .5);
-    -webkit-box-shadow: 0 0 1px rgba(255, 255, 255, .5);
+	border-radius: 4px;
+	background-color: rgba(0, 0, 0, .5);
+	-webkit-box-shadow: 0 0 1px rgba(255, 255, 255, .5);
 }
 
 .nav-links {
-    font-family: 'PT Sans', sans-serif;
-    font-size: 13px;
-    float: left;
+	font-family: 'PT Sans', sans-serif;
+	font-size: 13px;
+	float: left;
 }
 
 div a:hover {
-    color: turquoise;
+	color: turquoise;
 }
 
 div.equipment-filter {
-    float: right;
-    font-family: 'PT Sans', sans-serif;
-    font-size: 13px;
-    background: white;
+	float: right;
+	font-family: 'PT Sans', sans-serif;
+	font-size: 13px;
+	background: white;
 }
 
 div.equipment-filter ul {
-    height: 50px;
-    border: 1px solid black;
-    overflow: scroll;
-    padding: 2px;
-    margin: 2px;
-    
+	height: 50px;
+	border: 1px solid black;
+	overflow: scroll;
+	padding: 2px;
+	margin: 2px;
 }
 
 div.event-legend ul {
-    width: 250px;
-    margin: auto;
+	width: 250px;
+	margin: auto;
 }
 
 div.event-legend ul li {
-    float: left;
-    margin: 0px 2px 0px 2px;
-    padding: 1px;
-    list-style: none;
-    font-family: 'PT Sans', sans-serif;
-    font-size: 10px;
-    border: 1px solid #ccc;
+	float: left;
+	margin: 0px 2px 0px 2px;
+	padding: 1px;
+	list-style: none;
+	font-family: 'PT Sans', sans-serif;
+	font-size: 10px;
+	border: 1px solid #ccc;
 }
 
 div.message-holder {
-    width: 600px;
-    margin: auto;
+	width: 600px;
+	margin: auto;
 }
 
 div.message-obj {
-    padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #ccc;
-    font-family: 'PT Sans', sans-serif;
-    font-size: 12px;
-    background: ghostwhite;
+	padding: 10px;
+	margin-bottom: 10px;
+	border: 1px solid #ccc;
+	font-family: 'PT Sans', sans-serif;
+	font-size: 12px;
+	background: ghostwhite;
+	cursor: pointer;
 }
 
 div.critical {
-    background: pink;
-    border:  1px solid mediumvioletred;
+	background: pink;
+	border: 1px solid mediumvioletred;
 }
 
 div.message-obj span {
-    font-size: 10px;
-    color: gray;
+	font-size: 10px;
+	color: gray;
 }
 
 div#banner {
-    font-size: 20px;
-    border-bottom: 1px solid lightgray;
+	font-size: 20px;
+	border-bottom: 1px solid lightgray;
 }
 
 div#nav-layout {
-    float: left;
-    margin: 10px 0px 0px 5px;
+	float: left;
+	margin: 10px 0px 0px 5px;
 }
 
 div#previews-container {
-    float:right;
-    margin: 10px 5px 0px 0px;
+	float: right;
+	margin: 10px 5px 0px 0px;
 }
 
 div#msg-box-preview {}
 
+.follow-through {
+	font-size: 12px;
+}
+
 div#equipment-status-preview {}
 
 div#equipment-status-preview ul li span {
-    font-size: 10px;
-    margin-left: 6px;
-    
+	font-size: 10px;
+	margin-left: 6px;
 }
 
 span.warning {
-    border: 1px solid red;
-    font-variant: small-caps;
-    background: lightpink;
-    padding: 0px 1px 0px 1px;
+	border: 1px solid red;
+	font-variant: small-caps;
+	background: lightpink;
+	padding: 0px 1px 0px 1px;
 }
 
 ul.equipment-details li {
-    font-size: 12px;
+	font-size: 12px;
 }
 
 ul.component-details {
-    margin: 8px 0px 8px 0px;
-    font-size: 14px;
+	margin: 8px 0px 8px 0px;
+	font-size: 14px;
 }
 
 ul.component-details li {
-    font-size: 12px;
+	font-size: 12px;
+}
+
+div.clear {
+	clear: both;
+}
+
+div#statement-container {
+	width: 100%;
+	margin-top: 80px;
+}
+
+div#statement {
+	width: 90%;
+	margin: auto;
+}
+
+div#statement p.statement-header {
+	margin-right: 200px;
+	border-bottom: 1px solid lightgray;
+	padding-bottom: 5px;
+}
+
+div#statement .clause {
+	margin-right: 200px;
+}
+
+div#statement .clause p {
+	margin-left: 20px;
+	margin-right: 40px;
+	text-align: justify;
+	text-indent: 10px;
+}
+
+span.super-emphasize {
+	text-decoration: underline;
+	font-style: italic;
+	font-weight: bolder;
+}
+
+span.emphasize {
+	font-style: italic;
+}
+
+div#footer {
+	margin: 20px 0px 0px 0px;
 }
