@@ -123,10 +123,12 @@ class EventAdmin(admin.ModelAdmin):
                                 obj.start_timestring),
                               messages.SUCCESS)
             maintenance_announcement(obj)
-        elif (any(f in ['start_time', 'end_time'] for
-                  f in form.changed_data) and
-              all(x is not None for x in
-                  [obj.orig_start, obj.orig_end])):
+        elif ((any(f in ['start_time', 'end_time'] for
+                   f in form.changed_data) and
+               all(x is not None for x in
+                   [obj.orig_start, obj.orig_end])) or
+              (('status' in form.changed_data) and
+                obj.status == 'C')):
             self.message_user(request,
                               "changed from {} - {}".format(obj.orig_start,
                                                             obj.orig_end),

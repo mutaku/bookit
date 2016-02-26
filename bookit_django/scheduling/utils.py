@@ -181,9 +181,14 @@ def message_email(obj):
 
 def changed_event_mail(obj):
     '''Email all users of an edited event'''
-    msg = '''{0.user.username} has edited an event.
-    {0.orig_start} - {0.orig_end} on {o.equipment.name} is now
-    {0.start_timestring} - {0.end_timestring}.'''.format(obj)
+    if obj.orig_start == obj.start_time and obj.status == 'C':
+        msg = '''{0.user.username} has edited an event.
+    {0.orig_start} {0.equipment.name} is now CANCELLED.'''
+    else:
+        msg = '''{0.user.username} has edited an event.
+    {0.orig_start} - {0.orig_end} on {0.equipment.name} is now
+    {0.start_timestring} - {0.end_timestring}.'''
+    msg = msg.format(obj)
     subj = '{0.equipment.name} - {0.orig_start} has changed'.format(obj)
     recips = get_all_user_emails()
     send_mail(subj, msg, EMAIL_FROM, recips, fail_silently=False)
@@ -212,9 +217,9 @@ def new_event_mail(obj):
 
 def event_reminder_mail(obj):
     '''Email user to remind them of their event today'''
-    msg = '''This is a reminder email from Bookit that you have an
-    event scheduled today at {0.start_timestring}. {0.get_absolute_full_url}
-    '''.format(obj)
+    msg = '''This is a reminder email from Bookit that you are booked on
+    the {0.equipment.name} today at {0.start_timestring}.
+    {0.get_absolute_full_url}'''.format(obj)
     subj = 'Bookit reminder: {0.equipment.name} at {0.start_timestring}'.\
            format(obj)
     send_mail(subj, msg, EMAIL_FROM, [obj.user.email], fail_silently=False)
