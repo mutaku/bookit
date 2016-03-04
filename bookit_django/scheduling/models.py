@@ -21,13 +21,13 @@ YESNO = (
 
 
 def get_model_fields(obj):
-    '''Generate field names and values for templates'''
+    """Generate field names and values for templates"""
     return [(field.name, field.value_to_string(obj))
             for field in obj.__class__._meta.fields]
 
 
 def find_next_booking(obj):
-    '''Identify next booked slot for instrument'''
+    """Identify next booked slot for instrument"""
     return Event.objects.\
         filter(equipment=obj,
                status='A',
@@ -36,32 +36,37 @@ def find_next_booking(obj):
         order_by('start_time')[0]
 
 
+def find_last_service(obj):
+    """Identify last service event for instrument"""
+    return Service.objects.filter(equipment=obj).order_by('-date').first()
+
+
 class Brand(models.Model):
-    '''Component/Equipment Brand'''
+    """Component/Equipment Brand"""
     name = models.CharField("Name",
                             max_length=50,
                             null=False,
                             blank=False)
 
     def __unicode__(self):
-        '''Unicode return'''
+        """Unicode return"""
         return self.name
 
 
 class Model(models.Model):
-    '''Component/Equipment Model'''
+    """Component/Equipment Model"""
     name = models.CharField("Name",
                             max_length=50,
                             null=False,
                             blank=False)
 
     def __unicode__(self):
-        '''Unicode return'''
+        """Unicode return"""
         return self.name
 
 
 class Equipment(models.Model):
-    '''Available Equipment for Scheduling'''
+    """Available Equipment for Scheduling"""
     name = models.CharField("Equipment",
                             max_length=40)
     admin = models.ForeignKey(User,
@@ -87,47 +92,47 @@ class Equipment(models.Model):
     status = models.BooleanField("Running",
                                  default=True)
 
-    # @property
-    # def last_service(self):
-    #     '''Identify last service date'''
-    #     return Service.objects.filter(equipment=self).order_by('-date')[0]
+    @property
+    def last_service(self):
+        """Identify last service date"""
+        return find_last_service(self)
 
     @property
     def user_names_list(self):
-        '''List of allowed users'''
+        """List of allowed users"""
         return [str(user.username) for user in self.users.all()]
 
     @property
     def next_booking(self):
-        '''Rip down next booking for this instrument'''
+        """Rip down next booking for this instrument"""
         return find_next_booking(self)
 
     def get_fields(self):
-        '''Generate field names and values for templates'''
+        """Generate field names and values for templates"""
         return get_model_fields(self)
 
     @property
     def get_admin_url(self):
-        '''Generate admin URL'''
+        """Generate admin URL"""
         return '/admin/scheduling/equipment/{}/change/'.format(self.id)
 
     @property
     def get_absolute_full_url(self):
-        '''Compile a full, absolute URL'''
+        """Compile a full, absolute URL"""
         domain = Site.objects.get_current().domain.rstrip('/')
         return 'http://{}{}'.format(domain, self.get_admin_url)
 
     def __unicode__(self):
-        '''Unicode return'''
+        """Unicode return"""
         return self.name
 
     class Meta:
-        '''Overide some defaults'''
+        """Overide some defaults"""
         verbose_name_plural = "equipment"
 
 
 class Component(models.Model):
-    '''Equipment components'''
+    """Equipment components"""
     name = models.CharField("Name",
                             max_length=50,
                             null=False,
@@ -150,16 +155,16 @@ class Component(models.Model):
                              blank=True)
 
     def __unicode__(self):
-        '''Unicode return'''
+        """Unicode return"""
         return self.name
 
     def get_fields(self):
-        '''Generate field names and values for templates'''
+        """Generate field names and values for templates"""
         return get_model_fields(self)
 
 
 class Service(models.Model):
-    '''Service record for equipment/components'''
+    """Service record for equipment/components"""
     date = models.DateTimeField("Date",
                                 auto_now_add=True)
     user = models.ForeignKey(User,
@@ -181,33 +186,33 @@ class Service(models.Model):
 
     @property
     def short_job_title(self):
-        '''shortified (TM) version of job title'''
+        """shortified (TM) version of job title"""
         return self.job[:40]
 
     def __unicode__(self):
-        '''Unicode return'''
+        """Unicode return"""
         return '{} - {} - completed: {}'.format(self.date,
                                                 self.job,
                                                 self.completed)
 
     @property
     def get_admin_url(self):
-        '''Generate admin URL'''
+        """Generate admin URL"""
         return '/admin/scheduling/service/{}/change/'.format(self.id)
 
     @property
     def get_absolute_full_url(self):
-        '''Compile a full, absolute URL'''
+        """Compile a full, absolute URL"""
         domain = Site.objects.get_current().domain.rstrip('/')
         return 'http://{}{}'.format(domain, self.get_admin_url)
 
     def get_fields(self):
-        '''Generate field names and values for templates'''
+        """Generate field names and values for templates"""
         return get_model_fields(self)
 
 
 class Message(models.Model):
-    '''Message board Message'''
+    """Message board Message"""
     msg = models.TextField("Message",
                            null=False,
                            blank=False)
@@ -225,22 +230,22 @@ class Message(models.Model):
 
     @property
     def get_admin_url(self):
-        '''Generate admin URL'''
+        """Generate admin URL"""
         return '/scheduling/messages/#msg-{}'.format(self.id)
 
     @property
     def get_absolute_full_url(self):
-        '''Compile a full, absolute URL'''
+        """Compile a full, absolute URL"""
         domain = Site.objects.get_current().domain.rstrip('/')
         return 'http://{}{}'.format(domain, self.get_admin_url)
 
     def get_fields(self):
-        '''Generate field names and values for templates'''
+        """Generate field names and values for templates"""
         return get_model_fields(self)
 
 
 class Ticket(models.Model):
-    '''Maintenance Request Tickets'''
+    """Maintenance Request Tickets"""
     msg = models.TextField("Ticket",
                            null=False,
                            blank=False)
@@ -265,27 +270,27 @@ class Ticket(models.Model):
 
     @property
     def comment_count(self):
-        '''Quantify comment load'''
+        """Quantify comment load"""
         return self.comment.all().count()
 
     @property
     def get_admin_url(self):
-        '''Generate admin URL'''
+        """Generate admin URL"""
         return '/admin/scheduling/ticket/{}/change/'.format(self.id)
 
     @property
     def get_absolute_full_url(self):
-        '''Compile a full, absolute URL'''
+        """Compile a full, absolute URL"""
         domain = Site.objects.get_current().domain.rstrip('/')
         return 'http://{}{}'.format(domain, self.get_admin_url)
 
     def get_fields(self):
-        '''Generate field names and values for templates'''
+        """Generate field names and values for templates"""
         return get_model_fields(self)
 
 
 class Comment(models.Model):
-    '''Comments for Maintenance Request Tickets'''
+    """Comments for Maintenance Request Tickets"""
     msg = models.TextField("Comment",
                            null=False,
                            blank=False)
@@ -300,20 +305,20 @@ class Comment(models.Model):
                                     editable=False)
 
     def __unicode__(self):
-        '''Unicode return'''
+        """Unicode return"""
         return '{} - {}'.format(self.user.username,
                                 self.msg[:100])
 
     def get_fields(self):
-        '''Generate field names and values for templates'''
+        """Generate field names and values for templates"""
         return get_model_fields(self)
 
 
 class Event(models.Model):
-    '''Equipment Scheduling Event'''
+    """Equipment Scheduling Event"""
 
     def __init__(self, *args, **kwargs):
-        '''Add in initialization routines'''
+        """Add in initialization routines"""
         super(Event, self).__init__(*args, **kwargs)
         setattr(self, 'orig_start', getattr(self, 'start_time', None))
         setattr(self, 'orig_end', getattr(self, 'end_time', None))
@@ -345,7 +350,7 @@ class Event(models.Model):
                                   default=False)
 
     def upcoming(self):
-        '''Event is still in the future'''
+        """Event is still in the future"""
         if not self.expired and self.status == 'A':
             return True
         return False
@@ -353,52 +358,52 @@ class Event(models.Model):
 
     @property
     def start_timestring_time(self):
-        '''Start time only to string'''
-        return self.start_time.time().strftime("%H:%M")
+        """Start time only to string"""
+        return self.start_time.time().strftime("%I:%M%p")
 
     @property
     def end_timestring_time(self):
-        '''End time only to string'''
-        return self.end_time.time().strftime("%H:%M")
+        """End time only to string"""
+        return self.end_time.time().strftime("%I:%M%p")
 
     @property
     def start_timestring(self):
-        '''Start time to string'''
+        """Start time to string"""
         return str(self.start_time)
 
     @property
     def end_timestring(self):
-        '''End time to string'''
+        """End time to string"""
         return str(self.end_time)
 
     @property
     def get_admin_url(self):
-        '''Generate admin URL'''
+        """Generate admin URL"""
         return '/admin/scheduling/event/{}/change/'.format(self.id)
 
     @property
     def get_absolute_full_url(self):
-        '''Compile a full, absolute URL'''
+        """Compile a full, absolute URL"""
         domain = Site.objects.get_current().domain.rstrip('/')
         return 'http://{}{}'.format(domain, self.get_admin_url)
 
     @property
     def start_timestamp(self):
-        '''Generate start timestamp in ms'''
+        """Generate start timestamp in ms"""
         return '{0}'.format(int(mktime(self.start_time.timetuple()))*1000)
 
     @property
     def end_timestamp(self):
-        '''Generate end timestamp in ms'''
+        """Generate end timestamp in ms"""
         return '{0}'.format(int(mktime(self.end_time.timetuple()))*1000)
 
     def get_absolute_url(self):
-        '''Generate the absolute URL for this object'''
+        """Generate the absolute URL for this object"""
         # Using the admin change form for this
         return reverse('admin:scheduling_event_change', args=(self.id,))
 
     def clean(self, *args, **kwargs):
-        '''Add some custom validation'''
+        """Add some custom validation"""
         super(Event, self).clean(*args, **kwargs)
         if not self.equipment.status:
             raise ValidationError('{} is offline.'.format(
@@ -411,56 +416,46 @@ class Event(models.Model):
                 self.end_time < timezone.now() and
                 not self.user.is_superuser):
             raise ValidationError('Cannot edit an event that has expired.')
-
-        selected_day = self.start_time.date()
-        future_events = self.__class__._default_manager.filter(
-            start_time__range=[selected_day-timedelta(1),
-                               selected_day+timedelta(1)],
+        overlaps = self.__class__._default_manager.filter(
+            end_time__gte=self.start_time,
+            start_time__lte=self.end_time,
             status='A',
             expired=False,
             equipment=self.equipment).exclude(id=self.id)
-        overlaps = list()
-        for event in future_events:
-            if ((self.end_time >= event.end_time and
-                 self.start_time <= event.end_time) or
-                    (self.end_time >= event.start_time and
-                     self.start_time <= event.start_time) or
-                    (self.start_time >= event.start_time and
-                     self.end_time <= event.end_time)):
-                overlaps.append(event)
-        if len(overlaps) and self.maintenance is False:
-            raise ValidationError('Overlaps with existing booking.')
-        elif len(overlaps) and self.maintenance is True:
-            for obj in overlaps:
-                obj.status = 'C'
-                obj.save()
-                # UNCOMMENT THE FOLLOWING WHEN READY FOR EMAIL!
-                # maintenance_cancellation(obj)
+        if overlaps.count() > 0:
+            if self.maintenance is False:
+                raise ValidationError('Overlaps with existing booking.')
+            else:
+                for obj in overlaps:
+                    obj.status = 'C'
+                    obj.save()
+                    maintenance_cancellation(obj)
 
     def save(self, *args, **kwargs):
-        '''Tweak save routine to run stuff'''
+        """Tweak save routine to run stuff"""
         super(Event, self).save(*args, **kwargs)
 
     @property
     def current_status(self):
-        '''Stringify display name of current status'''
+        """Stringify display name of current status"""
         return self.get_status_display()
 
     @property
     def hover_text(self):
-        '''Generate descriptive text for html viewing'''
+        """Generate descriptive text for html viewing"""
         attrs = ['Start: {0.start_timestring_time}',
                  'End: {0.end_timestring_time}',
                  'User: {0.user.username}',
+                 'Expired: {0.expired}',
                  'Status: {0.current_status}',
                  'Equipment: {0.equipment.name}',
                  'Disassemble: {0.disassemble}']
         return ' &#10; '.join(attrs).format(self)
 
     def get_fields(self):
-        '''Generate field names and values for templates'''
+        """Generate field names and values for templates"""
         return get_model_fields(self)
 
     class Meta:
-        '''Overide some things'''
+        """Overide some things"""
         ordering = ["-start_time"]
