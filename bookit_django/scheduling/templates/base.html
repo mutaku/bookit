@@ -1,43 +1,32 @@
 <?xml version="1.0" encoding="ascii"?>
-	<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-	<html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
 
-	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=ascii" />
-		<title>Calendar for 2016</title>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=ascii" />
+	<title>{% block title %}{% endblock %}</title>
 
-		{% load staticfiles %}
-		<link rel="stylesheet" type="text/css" href="{% static 'scheduling/style.css' %}" />
+	{% load staticfiles %}
+	<link rel=icon href="{% static 'scheduling/favicon.png' %}" sizes="16x16" type="image/png">
+	<link rel="stylesheet" type="text/css" href="{% static 'scheduling/style.css' %}" />
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+	<script src="//code.jquery.com/jquery-1.10.2.js"></script>
+	<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+	<script src="{% static 'scheduling/main.js' %}"></script>
+</head>
 
-		<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
-		<script src="//code.jquery.com/jquery-1.10.2.js"></script>
-		<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
-		<script>
-			$(document).tooltip({
-				items: "a[title]"
-			});
-			$(document).ready(function() {
-				$('#messages').dialog({
-					autoOpen: true,
-					width: 500,
-					height: 200,
-					modal: true
-				});
-			});
-		</script>
-	</head>
-    
-    <body>
-		{% if messages %}
-		<div id="messages">
-			<ul class="messages">
-				{% for message in messages %}
-				<li{% if message.tags %} class="alert alert--{{ message.tags }} alert-dissmissable" {% endif %}>{{ message }}</li>
-					{% endfor %}
-			</ul>
-		</div>
-		{% endif %}
-        <div id="main-content">
-            {% block main %} {% endblock %}
-        </div>
-    </body>
+<body>
+	{% if messages %}
+	<div id="messages">
+		<ul class="messages">
+			{% for message in messages %}
+			<li{% if message.tags %} class="alert alert--{{ message.tags }} alert-dissmissable" {% endif %}>{{ message }}</li>
+				{% endfor %}
+		</ul>
+	</div>
+	{% endif %}
+	<div id="main-content">
+		{% block main %} {% endblock %}
+	</div>
+	<div id="footer">Bookit &copy; 2016 : Matthew Martz</div>
+</body>

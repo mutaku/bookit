@@ -55,8 +55,8 @@ table ul {
 	list-style-type: none;
 	margin: 2px;
 	padding: 0px;
-	border: 1px solid plum;
-	background: thistle;
+/*	border: 1px solid plum;
+	background: thistle;*/
 	height: 90px;
 	overflow: scroll;
 }
@@ -78,8 +78,25 @@ table ul {
 }
 
 table ul li {
-	padding: 8px 16px;
-	border-bottom: 1px solid purple;
+	padding: 4px 0px 4px 0px;
+	font-size: 12px;
+}
+
+table ul li:before {
+	padding-right: 5px;
+	content: "\25B6 ";
+}
+
+table ul li.active-event:before {
+	color: purple;
+}
+
+table ul li.maintenance-event:before {
+	color: red;
+}
+
+table ul li.expired-event:before {
+	color: snow;
 }
 
 table ul li:hover {}

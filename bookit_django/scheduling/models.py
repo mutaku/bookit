@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from datetime import timedelta, datetime
+from datetime import datetime
 from time import mktime
 from django.core.urlresolvers import reverse
 from utils import maintenance_cancellation
@@ -127,7 +127,7 @@ class Equipment(models.Model):
         return self.name
 
     class Meta:
-        """Overide some defaults"""
+        """Override some defaults"""
         verbose_name_plural = "equipment"
 
 
@@ -266,7 +266,6 @@ class Ticket(models.Model):
                                      blank=True)
     status = models.BooleanField("Closed",
                                  default=False)
-
 
     @property
     def comment_count(self):
@@ -457,5 +456,5 @@ class Event(models.Model):
         return get_model_fields(self)
 
     class Meta:
-        """Overide some things"""
+        """Override some things"""
         ordering = ["-start_time"]

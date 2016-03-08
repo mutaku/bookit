@@ -2,9 +2,7 @@ from django.contrib import admin, messages
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.utils import timezone
-from functools import partial
-from django import forms
-from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.exceptions import PermissionDenied
 from .models import Event, Equipment, Message, Ticket, Comment,\
     Service, Component, Brand, Model
 from .utils import changed_event_mail, deleted_event_mail,\
@@ -478,5 +476,5 @@ admin.site.site_header = 'bookit'
 admin.site.site_title = 'bookit'
 admin.site.index_title = 'bookit'
 # This shouldn't be hardcoded but the reverse wasn't working
-# admin.site.site_url = reverse('month_view', args=['Nikon'])
-admin.site.site_url = '/scheduling/calendar/month/Nikon/'
+# admin.site.site_url = reverse('scheduling')
+admin.site.site_url = '/scheduling'

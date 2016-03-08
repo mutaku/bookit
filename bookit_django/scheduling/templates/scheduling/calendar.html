@@ -5,9 +5,9 @@
 {% block main %}
 
 <div class="nav-links">
-	<a href="/scheduling/calendar/month/{{ navigation_data.equipment }}/?year={{ calendar_data.last.year }}&month={{ calendar_data.last.month }}">&#8612; {{ calendar_data.last.month_name }}</a>
+	<a href="/scheduling/calendar/month/{{ navigation_data.equipment }}/?year={{ calendar_data.last.year }}&month={{ calendar_data.last.month }}">&#8668; {{ calendar_data.last.month_name }}</a>
 	<a href="/scheduling/calendar/month/{{ navigation_data.equipment }}/?year={{ calendar_data.actual.year }}&month={{ calendar_data.actual.month }}">&middot; Current Month &middot;</a>
-	<a href="/scheduling/calendar/month/{{ navigation_data.equipment }}/?year={{ calendar_data.next.year }}&month={{ calendar_data.next.month }}">{{ calendar_data.next.month_name }} &#8614;</a>
+	<a href="/scheduling/calendar/month/{{ navigation_data.equipment }}/?year={{ calendar_data.next.year }}&month={{ calendar_data.next.month }}">{{ calendar_data.next.month_name }} &#8669;</a>
 </div>
 <div class="event-legend">
 	<ul>

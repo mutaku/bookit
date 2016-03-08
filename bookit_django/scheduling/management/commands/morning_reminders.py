@@ -8,17 +8,19 @@ from django.conf import settings
 
 
 class Command(BaseCommand):
-    '''Email reminder to users about upcoming events for today'''
+    """Email reminder to users about upcoming events for today"""
 
-    help = 'Sends reminder emails to users for events starting today'
+    help = "Sends reminder emails to users for events starting today"
     requires_system_checks = False
 
     def handle(self, *args, **options):
         events = Event.objects.filter(expired=False,
                                       status='A',
+                                      equipment__status=True,
                                       start_time__day=datetime.now().day)
-        self.stdout.write(self.style.SUCCESS(str(len(events))))
+        self.stdout.write(self.style.SUCCESS(
+            "Found [{}] events.".format(str(len(events)))))
         for event in events:
             event_reminder_mail(event)
         self.stdout.write(self.style.SUCCESS(
-            'Emails sent [{}].'.format(len(events))))
+            'Emails [{}] sent.'.format(len(events))))

@@ -1,5 +1,4 @@
-from django.shortcuts import render,\
-    get_object_or_404, get_list_or_404
+from django.shortcuts import get_list_or_404
 from .utils import jsonify_schedule, EventCalendar
 from django.http import HttpResponse
 from django.views.generic.detail import DetailView
@@ -14,13 +13,13 @@ from datetime import datetime
 
 
 # def handle_month(month):
-#     '''Handle some silly month assignment math'''
+#     """Handle some silly month assignment math"""
 #     if month == 0:
 #         return 12
 #     return month
 # 
 # def handle_year(month, year):
-#     '''Handle some silly year assignment math'''
+#     """Handle some silly year assignment math"""
 #     if month == 12:
 #         return year + 1
 #     elif month == 1:
@@ -29,7 +28,7 @@ from datetime import datetime
 
 
 class EquipmentDetailView(LoginRequiredMixin, DetailView):
-    '''Detailed view of an instrument'''
+    """Detailed view of an instrument"""
 
     model = Equipment
     template_name = 'scheduling/equipment_detail.html'
@@ -37,7 +36,7 @@ class EquipmentDetailView(LoginRequiredMixin, DetailView):
 
 @login_required
 def month_view(request, equipment):
-    '''Main calendar view'''
+    """Main calendar view"""
     year = request.GET.get('year', None)
     month = request.GET.get('month', None)
     if not all([year, month]):
@@ -92,7 +91,7 @@ def month_view(request, equipment):
 
 @login_required
 def message_board(request):
-    '''Message board view'''
+    """Message board view"""
     message_objs = Message.objects.all().order_by('-created')
     context = {'message_objs': message_objs}
     return render(request, 'scheduling/comments.html', context)
@@ -100,7 +99,7 @@ def message_board(request):
 
 @login_required
 def main_view(request):
-    '''Main landing view'''
+    """Main landing view"""
     equipment_list = Equipment.objects.all()
     message_objs = Message.objects.all().order_by('-created')[:3]
     context = {'message_objs': message_objs,
@@ -109,9 +108,9 @@ def main_view(request):
 
 
 def json_events(request, equipment):
-    '''JSON event list -
-    No login currently required so as to use as pubically
-    available API (of sorts)'''
+    """JSON event list -
+    No login currently required so as to use as publicly
+    available API (of sorts)"""
     if equipment is not None:
         event_list = get_list_or_404(Event, equipment__name=equipment)
         return HttpResponse(jsonify_schedule(event_list))
