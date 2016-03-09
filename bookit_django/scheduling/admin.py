@@ -10,6 +10,12 @@ from .utils import changed_event_mail, deleted_event_mail,\
     maintenance_announcement
 
 
+
+def void(*args, **kwargs):
+    """ Terrible usage of Python - empty function for pointers """
+    return None
+
+
 def toggle_boolean(modeladmin, request, queryset, field):
     """Toggle the boolean value of a model field"""
     for obj in queryset:
@@ -35,14 +41,6 @@ def toggle_boolean(modeladmin, request, queryset, field):
 class EventAdmin(admin.ModelAdmin):
     """Tweak the Event admin form"""
 
-    list_display = ('start_time',
-                    'end_time',
-                    'elapsed_hours',
-                    'upcoming',
-                    'equipment',
-                    'maintenance',
-                    'disassemble',
-                    'notes')
     readonly_fields = ('elapsed_hours',)
     actions = ['cancel_event']
 
@@ -61,7 +59,7 @@ class EventAdmin(admin.ModelAdmin):
                         'upcoming',
                         'equipment',
                         'disassemble',
-                        'notes')
+                        'get_notes')
         if request.user.is_superuser:
             list_display = list_display + ('maintenance', 'user',)
         return list_display
@@ -104,7 +102,8 @@ class EventAdmin(admin.ModelAdmin):
         event_functions = {
             'new_event': new_event_mail,
             'maintenance': maintenance_announcement,
-            'changed_event': changed_event_mail
+            'changed_event': changed_event_mail,
+            'trivial_change': void
         }
         if getattr(obj, 'user', None) is None:
             obj.user = request.user
@@ -144,6 +143,11 @@ class EventAdmin(admin.ModelAdmin):
             save_method = 'changed_event'
             save_method_string = "changed from {} - {}".format(
                 obj.orig_start, obj.orig_end)
+        #### ELSE: something has changed and we should either ignore or only alert
+        ####   the event holder
+        else:
+            save_method = 'trivial_change'
+            save_method_string = 'Adjusted event without changing booking time.'
         super(EventAdmin, self).save_model(request, obj, form, change)
         event_functions[save_method](obj)
         self.message_user(request,

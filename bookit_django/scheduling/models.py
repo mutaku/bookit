@@ -396,6 +396,13 @@ class Event(models.Model):
         """Generate end timestamp in ms"""
         return '{0}'.format(int(mktime(self.end_time.timetuple()))*1000)
 
+    def get_notes(self):
+        """Generate a shortened notes view"""
+        if self.notes:
+            return "{note}{ending}".format(note=self.notes[:25],
+                                           ending="..." if len(self.notes) > 25 else "")
+        return None
+
     def get_absolute_url(self):
         """Generate the absolute URL for this object"""
         # Using the admin change form for this
@@ -448,8 +455,9 @@ class Event(models.Model):
                  'Expired: {0.expired}',
                  'Status: {0.current_status}',
                  'Equipment: {0.equipment.name}',
-                 'Disassemble: {0.disassemble}']
-        return ' &#10; '.join(attrs).format(self)
+                 'Disassemble: {0.disassemble}',
+                 'Notes: {1}']
+        return ' &#10; '.join(attrs).format(self, self.get_notes())
 
     def get_fields(self):
         """Generate field names and values for templates"""
