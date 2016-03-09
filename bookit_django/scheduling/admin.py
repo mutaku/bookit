@@ -10,12 +10,6 @@ from .utils import changed_event_mail, deleted_event_mail,\
     maintenance_announcement
 
 
-
-def void(*args, **kwargs):
-    """ Terrible usage of Python - empty function for pointers """
-    return None
-
-
 def toggle_boolean(modeladmin, request, queryset, field):
     """Toggle the boolean value of a model field"""
     for obj in queryset:
@@ -103,7 +97,7 @@ class EventAdmin(admin.ModelAdmin):
             'new_event': new_event_mail,
             'maintenance': maintenance_announcement,
             'changed_event': changed_event_mail,
-            'trivial_change': void
+            'trivial_change': lambda: None
         }
         if getattr(obj, 'user', None) is None:
             obj.user = request.user
