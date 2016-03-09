@@ -108,20 +108,11 @@ class EventAdmin(admin.ModelAdmin):
         elapsed_td = (obj.end_time - obj.start_time).seconds
         obj.elapsed_hours = round(float(elapsed_td / 3600.0), 2)
         if obj.pk is None and not obj.maintenance:
-            # self.message_user(request,
-            #                   "Created {}".format(obj.start_timestring),
-            #                   messages.SUCCESS)
-            # new_event_mail(obj)
             save_method = 'new_event'
             save_method_string = "Created {}".format(obj.start_timestring)
         elif obj.maintenance and request.user.is_superuser:
-            # self.message_user(request,
-            #                   "Maintence scheduled {}".format(
-            #                     obj.start_timestring),
-            #                   messages.SUCCESS)
-            # maintenance_announcement(obj)
             save_method = 'maintenance'
-            save_method_string = "Maintence scheduled {}".format(
+            save_method_string = "Maintenance scheduled {}".format(
                 obj.start_timestring)
         elif ((any(f in ['start_time', 'end_time'] for
                    f in form.changed_data) and
@@ -129,16 +120,9 @@ class EventAdmin(admin.ModelAdmin):
                    [obj.orig_start, obj.orig_end])) or
               (('status' in form.changed_data) and
                 obj.status == 'C')):
-            # self.message_user(request,
-            #                   "changed from {} - {}".format(obj.orig_start,
-            #                                                 obj.orig_end),
-            #                   messages.SUCCESS)
-            # changed_event_mail(obj)
             save_method = 'changed_event'
             save_method_string = "changed from {} - {}".format(
                 obj.orig_start, obj.orig_end)
-        #### ELSE: something has changed and we should either ignore or only alert
-        ####   the event holder
         else:
             save_method = 'trivial_change'
             save_method_string = 'Adjusted event without changing booking time.'
