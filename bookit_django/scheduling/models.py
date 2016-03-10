@@ -193,54 +193,6 @@ class Component(models.Model):
         return get_model_fields(self)
 
 
-class Service(models.Model):
-    """Service record for equipment/components"""
-    date = models.DateTimeField("Date",
-                                auto_now_add=True)
-    user = models.ForeignKey(User,
-                             related_name='services')
-    equipment = models.ForeignKey(Equipment,
-                                  related_name='services')
-    component = models.ForeignKey(Component,
-                                  related_name='services',
-                                  null=True,
-                                  blank=True)
-    job = models.TextField("Job")
-    completed = models.BooleanField("Completed",
-                                    default=False)
-    success = models.BooleanField("Success",
-                                  default=False)
-    notes = models.TextField("Notes",
-                             blank=True,
-                             null=True)
-
-    @property
-    def short_job_title(self):
-        """shortified (TM) version of job title"""
-        return self.job[:40]
-
-    def __unicode__(self):
-        """Unicode return"""
-        return '{} - {} - completed: {}'.format(self.date,
-                                                self.job,
-                                                self.completed)
-
-    @property
-    def get_admin_url(self):
-        """Generate admin URL"""
-        return '/admin/scheduling/service/{}/change/'.format(self.id)
-
-    @property
-    def get_absolute_full_url(self):
-        """Compile a full, absolute URL"""
-        domain = Site.objects.get_current().domain.rstrip('/')
-        return 'http://{}{}'.format(domain, self.get_admin_url)
-
-    def get_fields(self):
-        """Generate field names and values for templates"""
-        return get_model_fields(self)
-
-
 class Message(models.Model):
     """Message board Message"""
     msg = models.TextField("Message",
@@ -306,6 +258,60 @@ class Ticket(models.Model):
     def get_admin_url(self):
         """Generate admin URL"""
         return '/admin/scheduling/ticket/{}/change/'.format(self.id)
+
+    @property
+    def get_absolute_full_url(self):
+        """Compile a full, absolute URL"""
+        domain = Site.objects.get_current().domain.rstrip('/')
+        return 'http://{}{}'.format(domain, self.get_admin_url)
+
+    def get_fields(self):
+        """Generate field names and values for templates"""
+        return get_model_fields(self)
+
+    def __unicode__(self):
+        """Unicode return"""
+        return '{} - {}'.format(self.equipment, self.msg[:50])
+
+
+class Service(models.Model):
+    """Service record for equipment/components"""
+    date = models.DateTimeField("Date",
+                                auto_now_add=True)
+    user = models.ForeignKey(User,
+                             related_name='services')
+    equipment = models.ForeignKey(Equipment,
+                                  related_name='services')
+    component = models.ForeignKey(Component,
+                                  related_name='services',
+                                  null=True,
+                                  blank=True)
+    job = models.TextField("Job")
+    ticket = models.ForeignKey(Ticket,
+                               null=True)
+    completed = models.BooleanField("Completed",
+                                    default=False)
+    success = models.BooleanField("Success",
+                                  default=False)
+    notes = models.TextField("Notes",
+                             blank=True,
+                             null=True)
+
+    @property
+    def short_job_title(self):
+        """shortified (TM) version of job title"""
+        return self.job[:40]
+
+    def __unicode__(self):
+        """Unicode return"""
+        return '{} - {} - completed: {}'.format(self.date,
+                                                self.job,
+                                                self.completed)
+
+    @property
+    def get_admin_url(self):
+        """Generate admin URL"""
+        return '/admin/scheduling/service/{}/change/'.format(self.id)
 
     @property
     def get_absolute_full_url(self):

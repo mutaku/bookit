@@ -80,7 +80,7 @@ class EventAdmin(admin.ModelAdmin):
     def get_fields(self, request, obj=None, **kwargs):
         """Override field getting"""
         if not request.user.is_superuser:
-            self.exclude = ('maintenance', 'expired', 'status', 'service')
+            self.exclude = ('maintenance', 'expired', 'status', 'service',)
         return super(EventAdmin, self).get_fields(request, obj, **kwargs)
 
     def get_form(self, request, obj=None, **kwargs):
@@ -231,7 +231,7 @@ class ServiceAdmin(admin.ModelAdmin):
     """Service record management"""
     exclude = ('user',)
     list_display = ('date', 'user', 'equipment',
-                    'component', 'short_job_title',
+                    'component', 'short_job_title', 'ticket',
                     'completed', 'success')
     list_filter = ('completed', 'success', 'equipment')
     actions = ['toggle_completed', 'toggle_success']
