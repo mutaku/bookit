@@ -42,7 +42,7 @@ class EventAdmin(admin.ModelAdmin):
         """Tweak list filtering based on user"""
         if request.user.is_superuser:
             return ['start_time', 'user',
-                    'equipment', 'maintenance']
+                    'equipment', 'maintenance', 'service']
         return ['equipment']
 
     def get_list_display(self, request):
@@ -55,7 +55,7 @@ class EventAdmin(admin.ModelAdmin):
                         'disassemble',
                         'get_notes')
         if request.user.is_superuser:
-            list_display = list_display + ('maintenance', 'user',)
+            list_display = list_display + ('maintenance', 'service', 'user',)
         return list_display
 
     def cancel_event(self, request, queryset):
@@ -80,7 +80,7 @@ class EventAdmin(admin.ModelAdmin):
     def get_fields(self, request, obj=None, **kwargs):
         """Override field getting"""
         if not request.user.is_superuser:
-            self.exclude = ('maintenance', 'expired', 'status',)
+            self.exclude = ('maintenance', 'expired', 'status', 'service')
         return super(EventAdmin, self).get_fields(request, obj, **kwargs)
 
     def get_form(self, request, obj=None, **kwargs):

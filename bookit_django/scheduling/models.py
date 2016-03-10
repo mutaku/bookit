@@ -375,6 +375,8 @@ class Event(models.Model):
                                       default=True)
     maintenance = models.BooleanField("Maintenance Mode",
                                       default=False)
+    service = models.ForeignKey(Service,
+                                null=True)
     expired = models.BooleanField("Expired",
                                   default=False)
 
@@ -452,6 +454,9 @@ class Event(models.Model):
                 self.end_time < timezone.now() and
                 not self.user.is_superuser):
             raise ValidationError('Cannot edit an event that has expired.')
+        if (any([self.maintenance, self.service])
+                and (not all([self.maintenance, self.service]))):
+            raise ValidationError('Maintenance must be attached with a service.')
         overlaps = self.__class__._default_manager.filter(
             end_time__gte=self.start_time,
             start_time__lte=self.end_time,
