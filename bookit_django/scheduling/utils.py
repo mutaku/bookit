@@ -107,13 +107,13 @@ class EventCalendar(HTMLCalendar):
 
 def get_all_user_emails():
     """Generate a list of all user email addresses"""
-    return User.objects.values_list('email', flat=True)
+    return list(User.objects.values_list('email', flat=True))
 
 
 def get_superuser_emails():
     """Generate a list of all superuser email addresses"""
-    return User.objects.filter(is_superuser=True).\
-        values_list('email', flat=True)
+    return list(User.objects.filter(is_superuser=True).\
+        values_list('email', flat=True))
 
 
 def jsonify_schedule(qset):
@@ -159,10 +159,11 @@ def maintenance_cancellation(obj):
 def ticket_email(obj):
     """Email superusers to inform of a new ticket or comment"""
     msg = """{0.user.username} has created/edited
-    a new ticket {0.id} for {0.equipment.name} - {0.get_absolute_full_url}
-    """.format(obj)
+    a new ticket {0.id} for {0.equipment.name} with high priority: {0.priority}
+    - {0.get_absolute_full_url}""".format(obj)
     subj = '{0.equipment.name} has a new ticket'.format(obj)
     recips = get_superuser_emails()
+    recips.append(obj.equipment.admin.email)
     send_mail(subj, msg, EMAIL_FROM, recips, fail_silently=False)
 
 

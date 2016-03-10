@@ -402,10 +402,10 @@ class TicketAdmin(admin.ModelAdmin):
             raise PermissionDenied
         # if getattr(obj, 'comment', None):
         #     form.cleaned_data['comment'] = self.comment.all()
+        super(TicketAdmin, self).save_model(request, obj, form, change)
         self.message_user(request, "Ticket {}".format(obj.id),
                           messages.SUCCESS)
         ticket_email(obj)
-        super(TicketAdmin, self).save_model(request, obj, form, change)
 
 
 @admin.register(Message)
