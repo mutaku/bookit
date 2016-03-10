@@ -41,6 +41,36 @@ def find_last_service(obj):
     return Service.objects.filter(equipment=obj).order_by('-date').first()
 
 
+class Information(models.Model):
+    """Informational bits for page display"""
+    user = models.ForeignKey(User,
+                              related_name="information_editor",
+                              limit_choices_to={
+                                'groups__name': 'equipment_admin'})
+    header = models.CharField("Header",
+                              max_length=100)
+    body = models.TextField("Body")
+    created = models.DateTimeField("Created",
+                                   auto_now_add=True)
+    modified = models.DateTimeField("Modified",
+                                    auto_now=True)
+    main_page_visible = models.BooleanField("Main Page Display",
+                                            default=False)
+
+    def get_body(self):
+        """Return shortened body display"""
+        return "{body}{ending}".format(body=self.body[:50],
+                                       ending="..." if len(self.body) > 50 else "")
+
+    def __unicode__(self):
+        """Unicode return"""
+        return self.header
+
+    class Meta:
+        """Override some defaults"""
+        verbose_name_plural = "information"
+
+
 class Brand(models.Model):
     """Component/Equipment Brand"""
     name = models.CharField("Name",

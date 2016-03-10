@@ -4,7 +4,7 @@ from django.core.urlresolvers import reverse
 from django.utils import timezone
 from django.core.exceptions import PermissionDenied
 from .models import Event, Equipment, Message, Ticket, Comment,\
-    Service, Component, Brand, Model
+    Service, Component, Brand, Model, Information
 from .utils import changed_event_mail, deleted_event_mail,\
     new_event_mail, ticket_email, message_email, ticket_status_toggle_email,\
     maintenance_announcement
@@ -249,6 +249,24 @@ class ServiceAdmin(admin.ModelAdmin):
         if getattr(obj, 'user', None) is None:
             obj.user = request.user
         super(ServiceAdmin, self).save_model(request, obj, form, change)
+
+
+@admin.register(Information)
+class InformationAdmin(admin.ModelAdmin):
+    """Information Display Management"""
+    list_display = ('header', 'get_body', 'user',
+                    'main_page_visible', 'created', 'modified')
+    actions = ['toggle_main_page_visible']
+    exclude = ('user',)
+
+    def toggle_main_page_visible(self, request, queryset):
+        """Toggle visibility on main page"""
+        toggle_boolean(self, request, queryset, 'main_page_visible')
+
+    def save_model(self, request, obj, form, change):
+        """Adjust some values on save"""
+        obj.user = request.user
+        super(InformationAdmin, self).save_model(request, obj, form, change)
 
 
 @admin.register(Equipment)

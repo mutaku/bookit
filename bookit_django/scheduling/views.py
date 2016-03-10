@@ -5,7 +5,7 @@ from django.views.generic.detail import DetailView
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render
-from .models import Event, Equipment, Message
+from .models import Event, Equipment, Message, Information
 import calendar
 from datetime import datetime
 
@@ -102,8 +102,10 @@ def main_view(request):
     """Main landing view"""
     equipment_list = Equipment.objects.all()
     message_objs = Message.objects.all().order_by('-created')[:3]
+    information_list = Information.objects.filter(main_page_visible=True)
     context = {'message_objs': message_objs,
-               'equipment_list': equipment_list}
+               'equipment_list': equipment_list,
+               'information_list': information_list}
     return render(request, 'scheduling/index.html', context)
 
 
