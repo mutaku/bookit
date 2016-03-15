@@ -232,8 +232,9 @@ class ServiceAdmin(admin.ModelAdmin):
     exclude = ('user',)
     list_display = ('date', 'user', 'equipment',
                     'component', 'short_job_title', 'ticket',
-                    'completed', 'success')
+                    'event', 'completed', 'success')
     list_filter = ('completed', 'success', 'equipment')
+    list_editable = ['user']
     actions = ['toggle_completed', 'toggle_success']
 
     def toggle_success(self, request, queryset):

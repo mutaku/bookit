@@ -305,7 +305,7 @@ class Service(models.Model):
     def __unicode__(self):
         """Unicode return"""
         return '{} - {} - completed: {}'.format(self.date,
-                                                self.job,
+                                                self.short_job_title,
                                                 self.completed)
 
     @property
@@ -381,8 +381,9 @@ class Event(models.Model):
                                       default=True)
     maintenance = models.BooleanField("Maintenance Mode",
                                       default=False)
-    service = models.ForeignKey(Service,
-                                null=True)
+    service = models.OneToOneField(Service,
+                                   on_delete=models.CASCADE,
+                                   null=True)
     expired = models.BooleanField("Expired",
                                   default=False)
 
@@ -503,6 +504,11 @@ class Event(models.Model):
     def get_fields(self):
         """Generate field names and values for templates"""
         return get_model_fields(self)
+
+    def __unicode__(self):
+        """Unicode return"""
+        return '{} - {}'.format(self.user.username,
+                                self.start_timestring)
 
     class Meta:
         """Override some things"""
