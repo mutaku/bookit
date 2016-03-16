@@ -76,11 +76,12 @@ def month_view(request, equipment):
         start_time__year=year,
         start_time__month=month,
         equipment__name=equipment)
-    equipment_id = Equipment.objects.get(name=equipment).id
+    equipment_result = Equipment.objects.get(name=equipment)
     month_calendar = EventCalendar(events).formatmonth(
         year,
         month,
-        equipment_id).replace('\n', '')
+        equipment_result.id,
+        equipment_result.name).replace('\n', '')
     nav_data = {'equipment': equipment}
     context = {'navigation_data': nav_data,
                'month_calendar': month_calendar,

@@ -1,9 +1,9 @@
 import json
+import calendar
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 from django.utils.html import conditional_escape as esc
-from calendar import HTMLCalendar
 from datetime import date, datetime
 from itertools import groupby
 from django.conf import settings
@@ -34,7 +34,7 @@ def date_string_constructor(year, month, day):
     return str(date(year, month, day))
 
 
-class EventCalendar(HTMLCalendar):
+class EventCalendar(calendar.HTMLCalendar):
     """Override HTMLCalendar to populate model data"""
     # Modified from
     # http://uggedal.com/journal/creating-a-flexible-monthly-calendar-in-django/
@@ -83,9 +83,22 @@ class EventCalendar(HTMLCalendar):
             return self.day_cell(cssclass, content)
         return self.day_cell('noday', '&nbsp;')
 
-    def formatmonth(self, year, month, equipment):
+    def formatmonthname(self, theyear, themonth, withyear=True):
+        """ Return a month name as a table row"""
+        if withyear:
+            date_string = '{} {}'.format(calendar.month_name[themonth],
+                                         theyear)
+        else:
+            date_string = '{}'.format(calendar.month_name[themonth])
+        return '<tr><th colspan="7" class="month">{}</th></tr>'.format(
+                            ' - '.join([date_string, self.equipment_name]))
+
+    def formatmonth(self, year, month, equipment, equipment_name):
         """Utilize supplied year and month"""
-        self.year, self.month, self.equipment = year, month, equipment
+        self.year, self.month, self.equipment, self.equipment_name = year, \
+                                                                     month, \
+                                                                     equipment, \
+                                                                     equipment_name
         return super(EventCalendar, self).formatmonth(year, month)
 
     def group_by_day(self, events):
