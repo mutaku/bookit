@@ -158,6 +158,10 @@ div.equipment-filter ul {
 	margin: 2px;
 }
 
+div.equipment-filter ul.tall {
+	height: 100px;
+}
+
 div.event-legend ul {
 	width: 250px;
 	margin: auto;

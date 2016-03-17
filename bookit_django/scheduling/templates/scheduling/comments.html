@@ -4,13 +4,40 @@
 
 {% block main %}
 
+<div class="equipment-filter">
+    {% if tags %}
+	<ul class="tall">Tag filter:
+        {% for tag in tags %}
+        <li>
+            {% if nav_data.tag == tag.tag %} * {{ tag }} {% else %}
+		    <a href="/scheduling/messages/?tag={{ tag }}">{{ tag }}</a>
+            {% endif %}
+        </li>
+        {% endfor %}
+        <li><a href="/scheduling/messages/">reset</a></li>
+	</ul>
+    {% endif %}
+    {% if equipment_list %}
+	<ul class="tall">Equipment filter:
+        {% for equipment in equipment_list %}
+        <li>
+            {% if nav_data.equipment == equipment.name %} * {{ equipment.name }} {% else %}
+		    <a href="/scheduling/messages/?equipment={{ equipment.name }}">{{ equipment.name }}</a>
+            {% endif %}
+        </li>
+        {% endfor %}
+        <li><a href="/scheduling/messages/">reset</a></li>
+	</ul>
+    {% endif %}
+</div>
+
 {% if message_objs %}
 <div class="message-holder">
 	{% for msg in message_objs %}
 	<a name="msg-{{ msg.id }}"></a>
 	<div class="message-obj{% if msg.critical %} critical{% endif %}">
 		{{ msg.msg | linebreaks }}
-		<span>Posted by: {{ msg.user}} on {{ msg.created }}</span>
+		<span>Posted by: {{ msg.user}} on {{ msg.created }} Tags: {{ msg.get_tags }}</span>
 	</div>
 	{% endfor %}
 </div>

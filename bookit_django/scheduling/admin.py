@@ -4,7 +4,7 @@ from django.core.urlresolvers import reverse
 from django.utils import timezone
 from django.core.exceptions import PermissionDenied
 from .models import Event, Equipment, Message, Ticket, Comment,\
-    Service, Component, Brand, Model, Information
+    Service, Component, Brand, Model, Information, Tag
 from .utils import changed_event_mail, deleted_event_mail,\
     new_event_mail, ticket_email, message_email, ticket_status_toggle_email,\
     maintenance_announcement
@@ -413,7 +413,7 @@ class TicketAdmin(admin.ModelAdmin):
 class MessageAdmin(admin.ModelAdmin):
     """Message management"""
 
-    list_display = ('created', 'user', 'msg')
+    list_display = ('created', 'user', 'equipment', 'msg', 'get_tags')
 
     def save_model(self, request, obj, form, change):
         """Adjust some values on save"""
@@ -473,6 +473,7 @@ class MessageAdmin(admin.ModelAdmin):
 admin.site.disable_action('delete_selected')
 admin.site.register(Brand)
 admin.site.register(Model)
+admin.site.register(Tag)
 admin.site.site_header = 'bookit'
 admin.site.site_title = 'bookit'
 admin.site.index_title = 'bookit'

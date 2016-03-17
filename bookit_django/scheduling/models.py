@@ -210,6 +210,15 @@ class Message(models.Model):
     critical = models.BooleanField("Critical",
                                    default=False)
 
+    tags = models.ManyToManyField("Tag",
+            blank=True,
+            null=True)
+
+    equipment = models.ForeignKey("Equipment",
+                                  blank=True,
+                                  null=True,
+                                  help_text="If selected, will only email associated users")
+
     @property
     def get_admin_url(self):
         """Generate admin URL"""
@@ -224,6 +233,28 @@ class Message(models.Model):
     def get_fields(self):
         """Generate field names and values for templates"""
         return get_model_fields(self)
+
+    def get_tags(self):
+        '''Pipe out tag list for admin changelist'''
+        tags = [obj.tag for obj in self.tags.all()]
+        return " | ".join(tags)
+    get_tags.short_description = "Tags"
+
+
+class Tag(models.Model):
+    """Tags to associate posts with"""
+    tag = models.CharField("Tag",
+            max_length=50,
+            unique=True)
+
+
+    class Meta:
+        """Override some things"""
+        ordering = ["-id"]
+
+    def __unicode__(self):
+        """Unicode return"""
+        return self.tag
 
 
 class Ticket(models.Model):

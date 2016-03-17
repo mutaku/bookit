@@ -1,11 +1,11 @@
-from django.shortcuts import get_list_or_404
+from django.shortcuts import get_list_or_404, get_object_or_404
 from .utils import jsonify_schedule, EventCalendar
 from django.http import HttpResponse
 from django.views.generic.detail import DetailView
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render
-from .models import Event, Equipment, Message, Information
+from .models import Event, Equipment, Message, Information, Tag
 import calendar
 from datetime import datetime
 
@@ -93,8 +93,23 @@ def month_view(request, equipment):
 @login_required
 def message_board(request):
     """Message board view"""
-    message_objs = Message.objects.all().order_by('-created')
-    context = {'message_objs': message_objs}
+    tag_filter = request.GET.get('tag', None)
+    equipment_filter = request.GET.get('equipment', None)
+    nav_data = dict()
+    if tag_filter:
+        tag = get_object_or_404(Tag, tag=tag_filter)
+        message_objs = Message.objects.filter(tags__id=tag.id)
+        nav_data['tag'] = tag_filter
+    else:
+        message_objs = Message.objects.all()
+    # Maybe not the best filtering setup, let's redesign this
+    if equipment_filter:
+        message_objs = message_objs.filter(equipment__name=equipment_filter)
+        nav_data['equipment'] = equipment_filter
+    context = {'message_objs': message_objs.order_by('-created'),
+               'tags': Tag.objects.all().order_by('tag'),
+               'equipment_list': Equipment.objects.all().order_by('name'),
+               'nav_data': nav_data}
     return render(request, 'scheduling/comments.html', context)
 
 
