@@ -118,9 +118,13 @@ class EventCalendar(calendar.HTMLCalendar):
         return '<td class="{}">{}</td>'.format(cssclass, body)
 
 
-def get_all_user_emails():
+def get_all_user_emails(equipment=None):
     """Generate a list of all user email addresses"""
-    return list(User.objects.values_list('email', flat=True))
+    if equipment:
+        users = equipment.users.all()
+    else:
+        users = User.objects
+    return list(users.values_list('email', flat=True))
 
 
 def get_superuser_emails():
@@ -156,7 +160,7 @@ def maintenance_announcement(obj):
     a separate email notifying you of this change.""".format(obj)
     subj = """{0.equipment.name} has been scheduled for
     emergency maintenance""".format(obj).replace('\n', '')
-    recips = get_all_user_emails()
+    recips = get_all_user_emails(obj.equipment)
     send_mail(subj, msg, EMAIL_FROM, recips, fail_silently=False)
 
 
@@ -209,7 +213,7 @@ def changed_event_mail(obj):
     {0.start_timestring} - {0.end_timestring}."""
     msg = msg.format(obj)
     subj = '{0.equipment.name} - {0.orig_start} has changed'.format(obj)
-    recips = get_all_user_emails()
+    recips = get_all_user_emails(obj.equipment)
     send_mail(subj, msg, EMAIL_FROM, recips, fail_silently=False)
 
 
@@ -219,7 +223,7 @@ def deleted_event_mail(obj):
     {0.start_timestring} - {0.end_timestring} on {0.equipment.name}
     is now available for scheduling.""".format(obj)
     subj = '{0.equipment.name} - {0.orig_start} is now open'.format(obj)
-    recips = get_all_user_emails()
+    recips = get_all_user_emails(obj.equipment)
     send_mail(subj, msg, EMAIL_FROM, recips, fail_silently=False)
 
 
