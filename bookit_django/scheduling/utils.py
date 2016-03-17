@@ -198,7 +198,10 @@ def message_email(obj):
     on {0.created}: {0.msg}
     {0.get_absolute_full_url}""".format(obj)
     subj = 'New Bookit message from {0.user.username}'.format(obj)
-    recips = get_all_user_emails()
+    if obj.equipment:
+        recips = get_all_user_emails(obj.equipment)
+    else:
+        recips = get_all_user_emails()
     send_mail(subj, msg, EMAIL_FROM, recips, fail_silently=False)
 
 
