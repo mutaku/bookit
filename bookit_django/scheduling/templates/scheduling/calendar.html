@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}Bookit - {{ navigation_data.equipment }} {{ calendar_data.current.month_name }} {{ calendar_data.current.year }}{% endblock %}
+{% block header %}{{ navigation_data.equipment }} Scheduling{% endblock %}
 
 {% block main %}
 
@@ -26,7 +27,7 @@
 		{% endif %} {% endfor %}
 	</ul>
 </div>
-
-{{ month_calendar | safe }}
+<div style="float:clear;"></div>
+<div id="calendar">{{ month_calendar | safe }}</div>
 
 {% endblock %}

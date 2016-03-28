@@ -2,6 +2,10 @@ body {
 	font-family: 'PT Sans', sans-serif;
 }
 
+#calendar {
+    padding-top: 40px;
+}
+
 table {
 	background: #fff;
 	border-collapse: collapse;
@@ -148,6 +152,9 @@ div.equipment-filter {
 	font-family: 'PT Sans', sans-serif;
 	font-size: 13px;
 	background: white;
+	position: fixed;
+	right: 0;
+	margin-right: 10px;
 }
 
 div.equipment-filter ul {
@@ -205,6 +212,7 @@ div.message-obj span {
 div#banner {
 	font-size: 20px;
 	border-bottom: 1px solid lightgray;
+	margin-bottom: 15px;
 }
 
 div#nav-layout {
