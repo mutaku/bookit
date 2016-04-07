@@ -60,6 +60,7 @@ class EventAdmin(admin.ModelAdmin):
 
     def cancel_event(self, request, queryset):
         """Cancel an upcoming event"""
+        # TODO account for HOLD status (A or H)
         queryset.filter(status='A', expired=False).update(status='C')
 
     def has_delete_permission(self, request, obj=None):

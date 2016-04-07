@@ -54,6 +54,7 @@ class EventCalendar(calendar.HTMLCalendar):
                 cssclass += ' filled'
                 body = ['<ul>']
                 for event in self.events[day]:
+                    # TODO account for HOLD status with a special class
                     if ((day_past(self.year, self.month, day) and
                                  event.end_time < datetime.now()) or
                             event.expired or event.status == 'C'):

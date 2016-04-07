@@ -77,6 +77,8 @@ table ul {
 	background: thistle;
 }
 
+/* TODO account for HOLD status with a special class */
+
 .today {
 	background: lavender;
 }

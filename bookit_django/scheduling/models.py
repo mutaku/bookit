@@ -14,6 +14,7 @@ from utils import maintenance_cancellation
 STATUS = (
     ("C", "Canceled"),
     ("A", "Active"))
+# TODO have a status of HOLD for a 'most likely' reservation
 
 YESNO = (
     ("Y", "Yes"),
@@ -28,6 +29,7 @@ def get_model_fields(obj):
 
 def find_next_booking(obj):
     """Identify next booked slot for instrument"""
+    # TODO account for HOLD status (A or H)
     return Event.objects.\
         filter(equipment=obj,
                status='A',
@@ -420,6 +422,7 @@ class Event(models.Model):
 
     def upcoming(self):
         """Event is still in the future"""
+        # TODO account for HOLD status (A or H)
         if not self.expired and self.status == 'A':
             return True
         return False
@@ -495,6 +498,7 @@ class Event(models.Model):
         if (any([self.maintenance, self.service])
                 and (not all([self.maintenance, self.service]))):
             raise ValidationError('Maintenance must be attached with a service.')
+        # TODO account for HOLD status (A or H)
         overlaps = self.__class__._default_manager.filter(
             end_time__gte=self.start_time,
             start_time__lte=self.end_time,
