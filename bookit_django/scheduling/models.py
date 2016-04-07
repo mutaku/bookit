@@ -31,7 +31,7 @@ def find_next_booking(obj):
     """Identify next booked slot for instrument"""
     return Event.objects.\
         filter(equipment=obj,
-               status__in=['A', 'C'],
+               status__in=['A', 'H'],
                expired=False,
                start_time__gte=datetime.now()).\
         order_by('start_time')[0]
