@@ -13,8 +13,8 @@ from utils import maintenance_cancellation
 
 STATUS = (
     ("C", "Canceled"),
-    ("A", "Active"))
-# TODO have a status of HOLD for a 'most likely' reservation
+    ("A", "Active"),
+    ("H", "Hold"))
 
 YESNO = (
     ("Y", "Yes"),
@@ -29,10 +29,9 @@ def get_model_fields(obj):
 
 def find_next_booking(obj):
     """Identify next booked slot for instrument"""
-    # TODO account for HOLD status (A or H)
     return Event.objects.\
         filter(equipment=obj,
-               status='A',
+               status__in=['A', 'C'],
                expired=False,
                start_time__gte=datetime.now()).\
         order_by('start_time')[0]
@@ -46,8 +45,8 @@ def find_last_service(obj):
 class Information(models.Model):
     """Informational bits for page display"""
     user = models.ForeignKey(User,
-                              related_name="information_editor",
-                              limit_choices_to={
+                             related_name="information_editor",
+                             limit_choices_to={
                                 'groups__name': 'equipment_admin'})
     header = models.CharField("Header",
                               max_length=100)
@@ -213,8 +212,8 @@ class Message(models.Model):
                                    default=False)
 
     tags = models.ManyToManyField("Tag",
-            blank=True,
-            null=True)
+                                  blank=True,
+                                  null=True)
 
     equipment = models.ForeignKey("Equipment",
                                   blank=True,
@@ -237,7 +236,7 @@ class Message(models.Model):
         return get_model_fields(self)
 
     def get_tags(self):
-        '''Pipe out tag list for admin changelist'''
+        """Pipe out tag list for admin changelist"""
         tags = [obj.tag for obj in self.tags.all()]
         return " | ".join(tags)
     get_tags.short_description = "Tags"
@@ -246,9 +245,8 @@ class Message(models.Model):
 class Tag(models.Model):
     """Tags to associate posts with"""
     tag = models.CharField("Tag",
-            max_length=50,
-            unique=True)
-
+                           max_length=50,
+                           unique=True)
 
     class Meta:
         """Override some things"""
@@ -416,14 +414,14 @@ class Event(models.Model):
                                       default=False)
     service = models.OneToOneField(Service,
                                    on_delete=models.CASCADE,
-                                   null=True)
+                                   null=True,
+                                   blank=True)
     expired = models.BooleanField("Expired",
                                   default=False)
 
     def upcoming(self):
         """Event is still in the future"""
-        # TODO account for HOLD status (A or H)
-        if not self.expired and self.status == 'A':
+        if not self.expired and self.status in ['A', 'H']:
             return True
         return False
     upcoming.boolean = True
@@ -498,11 +496,10 @@ class Event(models.Model):
         if (any([self.maintenance, self.service])
                 and (not all([self.maintenance, self.service]))):
             raise ValidationError('Maintenance must be attached with a service.')
-        # TODO account for HOLD status (A or H)
         overlaps = self.__class__._default_manager.filter(
             end_time__gte=self.start_time,
             start_time__lte=self.end_time,
-            status='A',
+            status__in=['A', 'H'],
             expired=False,
             equipment=self.equipment).exclude(id=self.id)
         if overlaps.count() > 0:

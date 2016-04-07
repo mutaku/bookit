@@ -74,10 +74,12 @@ table ul {
 }
 
 .active {
-	background: thistle;
+	background: plum;
 }
 
-/* TODO account for HOLD status with a special class */
+.hold {
+    background: yellowgreen;
+}
 
 .today {
 	background: lavender;
@@ -94,7 +96,7 @@ table ul li:before {
 }
 
 table ul li.active-event:before {
-	color: purple;
+	color: plum;
 }
 
 table ul li.maintenance-event:before {
@@ -103,6 +105,10 @@ table ul li.maintenance-event:before {
 
 table ul li.expired-event:before {
 	color: snow;
+}
+
+table ul li.hold-event:before {
+	color: yellowgreen;
 }
 
 table ul li:hover {}

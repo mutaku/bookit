@@ -60,8 +60,8 @@ class EventAdmin(admin.ModelAdmin):
 
     def cancel_event(self, request, queryset):
         """Cancel an upcoming event"""
-        # TODO account for HOLD status (A or H)
-        queryset.filter(status='A', expired=False).update(status='C')
+        queryset.filter(status__in=['A', 'H'],
+                        expired=False).update(status='C')
 
     def has_delete_permission(self, request, obj=None):
         """Adjust deletion permissions to use cancel"""
@@ -98,7 +98,7 @@ class EventAdmin(admin.ModelAdmin):
             'new_event': new_event_mail,
             'maintenance': maintenance_announcement,
             'changed_event': changed_event_mail,
-            'trivial_change': lambda: None
+            'trivial_change': lambda x: None
         }
         if getattr(obj, 'user', None) is None:
             obj.user = request.user

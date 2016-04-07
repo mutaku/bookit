@@ -14,9 +14,8 @@ class Command(BaseCommand):
     requires_system_checks = False
 
     def handle(self, *args, **options):
-        # TODO account for HOLD status (A or H)
         events = Event.objects.filter(expired=False,
-                                      status='A',
+                                      status__in=['A', 'H'],
                                       equipment__status=True,
                                       start_time__day=datetime.now().day)
         self.stdout.write(self.style.SUCCESS(
