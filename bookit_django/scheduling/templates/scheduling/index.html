@@ -30,7 +30,13 @@
 	<div id="equipment-status-preview">Equipment status:
 		<ul>
 			{% for equipment in equipment_list %}
-			<li class="{{ equipment.status }}">{{ equipment.name }} - {% if equipment.status %} &#9989; <span>Next booking: {{ equipment.next_booking.start_timestring }}</span> {% else %}&#10071; <span class="warning">offline</span> {% endif %}
+			<li class="{{ equipment.status }}">{{ equipment.name }} -
+				{% if equipment.status  %} &#9989;
+					{% if equipment.status and equipment.next_booking %}<span>Next booking: {{ equipment.next_booking.start_timestring }}</span>
+					{% else %}<span>No bookings reserved.</span>
+					{% endif %}
+				{% else %}&#10071; <span class="warning">offline</span>
+				{% endif %}
 			</li>
 			{% endfor %}
 		</ul>

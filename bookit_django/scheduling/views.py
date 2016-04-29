@@ -9,8 +9,6 @@ from .models import Event, Equipment, Message, Information, Tag
 import calendar
 from datetime import datetime
 
-# Create your views here.
-
 
 # def handle_month(month):
 #     """Handle some silly month assignment math"""
