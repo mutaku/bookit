@@ -36,7 +36,7 @@
 <div class="message-holder">
 	{% for msg in message_objs %}
 	<a name="msg-{{ msg.id }}"></a>
-	<div class="message-obj{% if msg.critical %} critical{% endif %}">
+    <div class="message-obj{% if msg.critical %} critical{% endif %}" id="{{ msg.id }}">
 		{{ msg.msg | linebreaks }}
 		<span>Posted by: {{ msg.user}} on {{ msg.created }} Tags: {{ msg.get_tags }}</span>
 	</div>

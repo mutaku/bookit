@@ -16,8 +16,10 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.contrib import admin
+from scheduling import views as scheduling_views
 
 urlpatterns = [
+    url(r'^$', scheduling_views.main_view, name='main_view'),
     url(r'^admin/', admin.site.urls),
     url(r'^scheduling/', include('scheduling.urls')),
 ]
