@@ -7,6 +7,7 @@ from django.utils.html import conditional_escape as esc
 from datetime import date, datetime
 from itertools import groupby
 from django.conf import settings
+from django.core.mail import EmailMessage
 
 # Maybe move these to settings
 EMAIL_FROM = settings.DEFAULT_FROM_EMAIL
@@ -164,7 +165,7 @@ def maintenance_announcement(obj):
     subj = """{0.equipment.name} has been scheduled for
     emergency maintenance""".format(obj).replace('\n', '')
     recips = get_all_user_emails(obj.equipment)
-    send_mail(subj, msg, EMAIL_FROM, recips, fail_silently=False)
+    EmailMessage(subj, msg, EMAIL_FROM, [], recips).send()
 
 
 def maintenance_cancellation(obj):
@@ -184,7 +185,7 @@ def ticket_email(obj):
     subj = '{0.equipment.name} has a new ticket'.format(obj)
     recips = get_superuser_emails()
     recips.append(obj.equipment.admin.email)
-    send_mail(subj, msg, EMAIL_FROM, recips, fail_silently=False)
+    EmailMessage(subj, msg, EMAIL_FROM, [], recips).send()
 
 
 def ticket_status_toggle_email(obj):
@@ -205,7 +206,7 @@ def message_email(obj):
         recips = get_all_user_emails(obj.equipment)
     else:
         recips = get_all_user_emails()
-    send_mail(subj, msg, EMAIL_FROM, recips, fail_silently=False)
+    EmailMessage(subj, msg, EMAIL_FROM, [], recips).send()
 
 
 def changed_event_mail(obj):
@@ -220,7 +221,7 @@ def changed_event_mail(obj):
     msg = msg.format(obj)
     subj = '{0.equipment.name} - {0.orig_start} has changed'.format(obj)
     recips = get_all_user_emails(obj.equipment)
-    send_mail(subj, msg, EMAIL_FROM, recips, fail_silently=False)
+    EmailMessage(subj, msg, EMAIL_FROM, [], recips).send()
 
 
 def deleted_event_mail(obj):
@@ -230,7 +231,7 @@ def deleted_event_mail(obj):
     is now available for scheduling.""".format(obj)
     subj = '{0.equipment.name} - {0.orig_start} is now open'.format(obj)
     recips = get_all_user_emails(obj.equipment)
-    send_mail(subj, msg, EMAIL_FROM, recips, fail_silently=False)
+    EmailMessage(subj, msg, EMAIL_FROM, [], recips).send()
 
 
 def new_event_mail(obj):
