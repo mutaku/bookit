@@ -554,4 +554,4 @@ def email_new_user(sender, **kwargs):
         user = kwargs["instance"]
         new_user(user)
 
-post_save.connect(email_new_user, sender=User)
+#post_save.connect(email_new_user, sender=User)
