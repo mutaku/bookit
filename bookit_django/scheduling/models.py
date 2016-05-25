@@ -2,13 +2,14 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models.signals import post_save
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from datetime import datetime
 from time import mktime
 from django.core.urlresolvers import reverse
-from utils import maintenance_cancellation
+from utils import maintenance_cancellation, new_user
 
 
 STATUS = (
@@ -545,3 +546,12 @@ class Event(models.Model):
     class Meta:
         """Override some things"""
         ordering = ["-start_time"]
+
+
+def email_new_user(sender, **kwargs):
+    """Email new user when one is created"""
+    if kwargs["created"]:
+        user = kwargs["instance"]
+        new_user(user)
+
+post_save.connect(email_new_user, sender=User)
