@@ -10,7 +10,7 @@ from datetime import datetime
 from time import mktime
 from django.contrib.auth.forms import PasswordResetForm
 from django.core.urlresolvers import reverse
-from utils import maintenance_cancellation
+from utils import maintenance_cancellation, EMAIL_FROM
 
 
 STATUS = (
@@ -555,7 +555,7 @@ def email_new_user(sender, **kwargs):
         user = kwargs["instance"]
         form = PasswordResetForm({'email': user.email})
         assert form.is_valid()
-        form.save(from_email='bookit@mutaku.com',
+        form.save(from_email=EMAIL_FROM,
                   use_https=True,
                   subject_template_name="scheduling/password_reset_subject.txt",
                   email_template_name="scheduling/password_reset_email.html")
