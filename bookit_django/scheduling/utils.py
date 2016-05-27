@@ -254,20 +254,3 @@ def event_reminder_mail(obj):
     subj = 'Bookit reminder: {0.equipment.name} at {0.start_timestring}'.\
            format(obj)
     send_mail(subj, msg, EMAIL_FROM, [obj.user.email], fail_silently=False)
-
-def new_user(user):
-    """Email new user when one is created"""
-    # Expand this msg with some more information and links
-    password = User.objects.make_random_password(20)
-    user.set_password(password)
-    user.save()
-    change_link = Site.objects.get(id=1).domain.join(['https://', '/admin/password_change/'])
-    msg = """Welcome, {0.first_name}, to Bookit.
-    https://bookit.mutaku.com
-    Your login and temporary password are as follows:
-    Username: {0.username}
-    Temp Password: {1}
-    Once logged in, go to the following link to change your password:
-    {2}""".format(user, password, change_link)
-    subj = 'Welcome to Bookit'
-    send_mail(subj, msg, EMAIL_FROM, [user.email], fail_silently=False)

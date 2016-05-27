@@ -8,8 +8,9 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from datetime import datetime
 from time import mktime
+from django.contrib.auth.forms import PasswordResetForm
 from django.core.urlresolvers import reverse
-from utils import maintenance_cancellation, new_user
+from utils import maintenance_cancellation
 
 
 STATUS = (
@@ -552,6 +553,11 @@ def email_new_user(sender, **kwargs):
     """Email new user when one is created"""
     if kwargs["created"]:
         user = kwargs["instance"]
-        new_user(user)
+        form = PasswordResetForm({'email': user.email})
+        assert form.is_valid()
+        form.save(from_email='bookit@mutaku.com',
+                  use_https=True,
+                  subject_template_name="scheduling/password_reset_subject.txt",
+                  email_template_name="scheduling/password_reset_email.html")
 
-#post_save.connect(email_new_user, sender=User)
+post_save.connect(email_new_user, sender=User)
