@@ -254,3 +254,12 @@ def event_reminder_mail(obj):
     subj = 'Bookit reminder: {0.equipment.name} at {0.start_timestring}'.\
            format(obj)
     send_mail(subj, msg, EMAIL_FROM, [obj.user.email], fail_silently=False)
+
+def alert_requested(equipment, user):
+    """Email equipment admin about new user request"""
+    msg = """{0.username} has requested use of {1.name}.
+    You can apply this request here:
+    http://{2}/scheduling/activateperms/{1.id}/{0.id}""".format(user, equipment,
+                                                 Site.objects.get(id=1).domain)
+    subj = 'Equipment permissions request'
+    send_mail(subj, msg, EMAIL_FROM, [user.email], fail_silently=False)

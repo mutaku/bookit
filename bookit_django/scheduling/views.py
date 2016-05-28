@@ -1,10 +1,12 @@
 from django.shortcuts import get_list_or_404, get_object_or_404
-from .utils import jsonify_schedule, EventCalendar
+from .utils import jsonify_schedule, EventCalendar, alert_requested
 from django.http import HttpResponse
+from django.contrib import messages
 from django.views.generic.detail import DetailView
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.contrib.auth.models import User
 from .models import Event, Equipment, Message, Information, Tag
 import calendar
 from datetime import datetime
@@ -30,6 +32,42 @@ class EquipmentDetailView(LoginRequiredMixin, DetailView):
 
     model = Equipment
     template_name = 'scheduling/equipment_detail.html'
+
+
+@login_required
+def request_equipment_perms(request, pk):
+    """Request to be added to instrument for booking"""
+    equipment = get_object_or_404(Equipment, id=pk)
+
+    alert_requested(equipment, request.user)
+    result_string = 'Requested use of {0.name}. You will be notified by email.'\
+        .format(equipment)
+    result_status = messages.SUCCESS
+
+    messages.add_message(request, result_status,
+                         result_string)
+    return redirect('scheduling.views.main_view')
+
+
+@login_required
+def activate_equipment_perms(request, equip_pk, user_pk):
+    """Trigger user instrument permissions granted"""
+    equipment = get_object_or_404(Equipment, id=equip_pk)
+    user = get_object_or_404(User, id=user_pk)
+
+    if request.user.id == equipment.admin_id:
+        equipment.users.add(user)
+        equipment.save()
+        msg = 'User {0.username} added to {1.name}'.format(user,
+                                                           equipment)
+        messages.add_message(request, messages.SUCCESS,
+                             msg)
+    else:
+        messages.add_message(request, messages.ERROR, 'Failed to add user.')
+    #return render(request, 'scheduling/index.html')
+    return redirect('scheduling.views.main_view')
+
+
 
 
 @login_required
