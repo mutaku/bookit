@@ -64,10 +64,7 @@ def activate_equipment_perms(request, equip_pk, user_pk):
                              msg)
     else:
         messages.add_message(request, messages.ERROR, 'Failed to add user.')
-    #return render(request, 'scheduling/index.html')
     return redirect('scheduling.views.main_view')
-
-
 
 
 @login_required
