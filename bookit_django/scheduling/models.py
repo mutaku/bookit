@@ -395,9 +395,11 @@ class Event(models.Model):
                              editable=False,
                              related_name='events')
     start_time = models.DateTimeField("Start time",
+                                      help_text="24hr format, e.g. 15:00",
                                       blank=False,
                                       null=False)
     end_time = models.DateTimeField("End time",
+                                    help_text="24hr format, e.g. 20:00",
                                     blank=False,
                                     null=False)
     elapsed_hours = models.FloatField("Elapsed time (h)",
