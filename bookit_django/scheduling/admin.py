@@ -514,9 +514,9 @@ class MessageAdmin(admin.ModelAdmin):
         elif (obj.pk and obj.user != request.user and
               not request.user.is_superuser):
             raise PermissionDenied
+        super(MessageAdmin, self).save_model(request, obj, form, change)
         self.message_user(request, "New message {}".format(obj.id),
                           messages.SUCCESS)
-        super(MessageAdmin, self).save_model(request, obj, form, change)
         message_email(obj)
 
     def delete_model(self, request, obj):
