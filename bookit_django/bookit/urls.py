@@ -22,5 +22,8 @@ urlpatterns = [
     url(r'^$', scheduling_views.main_view, name='main_view'),
     url(r'^admin/', admin.site.urls),
     url(r'^scheduling/', include('scheduling.urls')),
+    url(r'^accounts/password/reset/(?P<uidb64>[0-9A-Za-z]+)-(?P<token>.+)/$',
+     'django.contrib.auth.views.password_reset_confirm',
+     {'post_reset_redirect': scheduling_views.main_view}, name='password_reset_confirm')
 ]
 

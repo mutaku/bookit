@@ -3,6 +3,11 @@ from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.utils import timezone
 from django.core.exceptions import PermissionDenied
+from django.contrib.auth.forms import UserCreationForm, PasswordResetForm
+from django.contrib.auth.admin import UserAdmin
+from django import forms
+from django.contrib.auth.models import User
+from django.utils.translation import ugettext_lazy as _
 from .models import Event, Equipment, Message, Ticket, Comment,\
     Service, Component, Brand, Model, Information, Tag
 from .utils import changed_event_mail, deleted_event_mail,\
@@ -15,6 +20,44 @@ def toggle_boolean(modeladmin, request, queryset, field):
     for obj in queryset:
         setattr(obj, field, not getattr(obj, field))
         obj.save()
+
+
+class UserCreationFormEmail(UserCreationForm):
+    """Modified user creation form for generating users"""
+    def __init__(self, *args, **kwargs):
+        super(UserCreationFormEmail, self).__init__(*args, **kwargs)
+        self.fields['email'] = forms.EmailField(label=_("Email"), max_length=75)
+        self.fields['first_name'] = forms.CharField(label=_("First Name"),
+                                                    max_length=30)
+        self.fields['last_name'] = forms.CharField(label=_("Last Name"),
+                                                   max_length=30)
+        self.fields['password1'].required = False
+        self.fields['password2'].required = False
+        # If one field gets autocompleted but not the other, our 'neither
+        # password or both password' validation will be triggered.
+        self.fields['password1'].widget.attrs['autocomplete'] = 'off'
+        self.fields['password2'].widget.attrs['autocomplete'] = 'off'
+
+    def clean_password2(self):
+        return None
+
+    def save(self, commit=True):
+        user = super(UserCreationForm, self).save(commit=False)
+        user.set_password(User.objects.make_random_password(20))
+        user.is_staff = True
+        if commit:
+            user.save()
+        return user
+
+class UserAdminMod(UserAdmin):
+    """Modified user admin for tweaked functionality"""
+    add_form = UserCreationFormEmail
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('username', 'email', 'first_name', 'last_name',
+                       )
+        }),)
 
 
 # class EventForm(forms.ModelForm):
@@ -471,6 +514,8 @@ class MessageAdmin(admin.ModelAdmin):
                                                       object_id,
                                                       extra_context)
 
+admin.site.unregister(User)
+admin.site.register(User, UserAdminMod)
 admin.site.disable_action('delete_selected')
 admin.site.register(Brand)
 admin.site.register(Model)

@@ -5,6 +5,12 @@
 
 {% block main %}
 
+{% if user.username not in equipment.user_names_list %}
+<div id="request-equipment-perms">
+    <a href="/scheduling/requestperms/{{ equipment.id }}"> Click to request use of this instrument</a>
+</div>
+{% endif %}
+
 <div id="equipment-detail-list">
     <ul class="equipment-details"> {{ equipment.name }}
     {% for name, value in equipment.get_fields %}

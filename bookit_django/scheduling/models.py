@@ -2,13 +2,15 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models.signals import post_save
 from django.contrib.sites.models import Site
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from datetime import datetime
 from time import mktime
+from django.contrib.auth.forms import PasswordResetForm
 from django.core.urlresolvers import reverse
-from utils import maintenance_cancellation
+from utils import maintenance_cancellation, EMAIL_FROM
 
 
 STATUS = (
@@ -393,9 +395,11 @@ class Event(models.Model):
                              editable=False,
                              related_name='events')
     start_time = models.DateTimeField("Start time",
+                                      help_text="24hr format, e.g. 15:00",
                                       blank=False,
                                       null=False)
     end_time = models.DateTimeField("End time",
+                                    help_text="24hr format, e.g. 20:00",
                                     blank=False,
                                     null=False)
     elapsed_hours = models.FloatField("Elapsed time (h)",
@@ -545,3 +549,17 @@ class Event(models.Model):
     class Meta:
         """Override some things"""
         ordering = ["-start_time"]
+
+
+def email_new_user(sender, **kwargs):
+    """Email new user when one is created"""
+    if kwargs["created"]:
+        user = kwargs["instance"]
+        form = PasswordResetForm({'email': user.email})
+        assert form.is_valid()
+        form.save(from_email=EMAIL_FROM,
+                  use_https=True,
+                  subject_template_name="scheduling/password_reset_subject.txt",
+                  email_template_name="scheduling/password_reset_email.html")
+
+post_save.connect(email_new_user, sender=User)

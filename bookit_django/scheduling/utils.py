@@ -8,6 +8,7 @@ from datetime import date, datetime
 from itertools import groupby
 from django.conf import settings
 from django.core.mail import EmailMessage
+from django.contrib.sites.models import Site
 
 # Maybe move these to settings
 EMAIL_FROM = settings.DEFAULT_FROM_EMAIL
@@ -253,3 +254,24 @@ def event_reminder_mail(obj):
     subj = 'Bookit reminder: {0.equipment.name} at {0.start_timestring}'.\
            format(obj)
     send_mail(subj, msg, EMAIL_FROM, [obj.user.email], fail_silently=False)
+
+def alert_requested(equipment, user):
+    """Email equipment admin about new user request"""
+    msg = """{0.username} has requested use of the {1.name}.
+    You can apply this request here: http://{2}{3}""".\
+        format(user, equipment,
+               Site.objects.get(id=1).domain,
+               reverse('activate-equipment-perms',
+                       args=(equipment.id, user.id,)))
+    subj = 'Equipment permissions request'
+    send_mail(subj, msg, EMAIL_FROM, [user.email], fail_silently=False)
+
+def request_granted(equipment, user):
+    """Email user that their instrument perms request has been granted"""
+    msg = """You have been granted permission to book time on the {0.name}.
+     You may do so here: http://{1}{2}"""\
+        .format(equipment,
+                Site.objects.get(id=1).domain,
+                reverse('month_view', args=(equipment.name,)))
+    subj = 'Equipment permission request granted'
+    send_mail(subj, msg, EMAIL_FROM, [user.email], fail_silently=False)
