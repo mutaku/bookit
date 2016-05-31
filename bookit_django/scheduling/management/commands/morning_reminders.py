@@ -1,10 +1,8 @@
-from django.core.management.base import BaseCommand,\
-    CommandError
+from django.core.management.base import BaseCommand
 from scheduling.models import Event
 from scheduling.utils import event_reminder_mail
 from datetime import datetime
-from django.core.mail import send_mail
-from django.conf import settings
+
 
 
 class Command(BaseCommand):
@@ -19,8 +17,12 @@ class Command(BaseCommand):
                                       equipment__status=True,
                                       start_time__day=datetime.now().day)
         self.stdout.write(self.style.SUCCESS(
-            "Found [{}] events.".format(str(len(events)))))
+            "{} Reminders: Found [{}] events.".format(
+                datetime.now().strftime('%a %d-%b-%y %H-%M-%S'),
+                str(len(events)))))
         for event in events:
             event_reminder_mail(event)
         self.stdout.write(self.style.SUCCESS(
-            'Emails [{}] sent.'.format(len(events))))
+            '{} Reminders: Emails [{}] sent.'.format(
+                datetime.now().strftime('%a %d-%b-%y %H-%M-%S'),
+                len(events))))
