@@ -516,8 +516,8 @@ class MessageAdmin(admin.ModelAdmin):
             raise PermissionDenied
         self.message_user(request, "New message {}".format(obj.id),
                           messages.SUCCESS)
-        message_email(obj)
         super(MessageAdmin, self).save_model(request, obj, form, change)
+        message_email(obj)
 
     def delete_model(self, request, obj):
         """Prevent deleting events that have already occurred"""
