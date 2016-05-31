@@ -1,12 +1,14 @@
 from django.contrib import admin, messages
 from django.http import HttpResponseRedirect
 from django.core.urlresolvers import reverse
-from django.utils import timezone
+from django.utils import timezone, six
 from django.core.exceptions import PermissionDenied
-from django.contrib.auth.forms import UserCreationForm, PasswordResetForm
+from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.admin import UserAdmin
 from django import forms
 from django.contrib.auth.models import User
+from django.forms.utils import to_current_timezone
+from django.forms.widgets import MultiWidget, DateInput, TimeInput
 from django.utils.translation import ugettext_lazy as _
 from .models import Event, Equipment, Message, Ticket, Comment,\
     Service, Component, Brand, Model, Information, Tag
@@ -20,6 +22,37 @@ def toggle_boolean(modeladmin, request, queryset, field):
     for obj in queryset:
         setattr(obj, field, not getattr(obj, field))
         obj.save()
+
+
+def is_admin(user):
+    """Fine tune admin status check for model and view interactions"""
+    if user.is_superuser or user in User.objects.filter(
+            groups__name="equipment_admin"):
+        return True
+    return False
+
+
+class CustomDateTimeSplitWidget(MultiWidget):
+    """
+    A Widget that splits datetime input into two <input type="text"> boxes.
+    """
+    #### Not functional yet.
+    supports_microseconds = False
+
+    def __init__(self, attrs=None, date_format=None, time_format=None):
+        widgets = (DateInput(attrs=attrs, format=date_format),
+                   TimeInput(attrs=attrs, format=time_format))
+        super(CustomDateTimeSplitWidget, self).__init__(widgets, attrs)
+
+    def decompress(self, value):
+        if value:
+            # value = to_current_timezone(value)
+            if isinstance(value, six.string_types):
+                return value.split(',')
+            else:
+                value = to_current_timezone(value)
+                return [value.date(), value.time().replace(microsecond=0)]
+        return [None, None]
 
 
 class UserCreationFormEmail(UserCreationForm):
@@ -80,10 +113,15 @@ class EventAdmin(admin.ModelAdmin):
 
     readonly_fields = ('elapsed_hours',)
     actions = ['cancel_event']
+    exclude = ()
+    # formfield_overrides = {
+    #     models.DateTimeField: {'widget': CustomDateTimeSplitWidget},
+    # }
 
     def get_list_filter(self, request):
         """Tweak list filtering based on user"""
-        if request.user.is_superuser:
+        #if request.user.is_superuser:
+        if is_admin(request.user):
             return ['start_time', 'user',
                     'equipment', 'maintenance', 'service']
         return ['equipment']
@@ -97,7 +135,8 @@ class EventAdmin(admin.ModelAdmin):
                         'equipment',
                         'disassemble',
                         'get_notes')
-        if request.user.is_superuser:
+        #if request.user.is_superuser:
+        if is_admin(request.user):
             list_display = list_display + ('maintenance', 'service', 'user',)
         return list_display
 
@@ -122,8 +161,12 @@ class EventAdmin(admin.ModelAdmin):
     #         db_field, request, **kwargs)
 
     def get_fields(self, request, obj=None, **kwargs):
-        """Override field getting"""
-        if not request.user.is_superuser:
+        """Override field getting
+        This occasionally gets buggy and I'm not sure as to why.
+        Maybe the empty base-level "exclude" will help.
+        """
+        #if not request.user.is_superuser:
+        if not is_admin(request.user):
             self.exclude = ('maintenance', 'expired', 'status', 'service',)
         return super(EventAdmin, self).get_fields(request, obj, **kwargs)
 
@@ -154,7 +197,8 @@ class EventAdmin(admin.ModelAdmin):
         if obj.pk is None and not obj.maintenance:
             save_method = 'new_event'
             save_method_string = "Created {}".format(obj.start_timestring)
-        elif obj.maintenance and request.user.is_superuser:
+        #elif obj.maintenance and request.user.is_superuser:
+        elif obj.maintenance and is_admin(request.user):
             save_method = 'maintenance'
             save_method_string = "Maintenance scheduled {}".format(
                 obj.start_timestring)
@@ -179,7 +223,8 @@ class EventAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         """Override the queryset to enforce permissions"""
         qstring = super(EventAdmin, self).get_queryset(request)
-        if request.user.is_superuser:
+        #if request.user.is_superuser:
+        if is_admin(request.user):
             return qstring
         return qstring.filter(user=request.user)
 
@@ -325,7 +370,8 @@ class EquipmentAdmin(admin.ModelAdmin):
 
     def get_fields(self, request, obj=None, **kwargs):
         """Override field getting"""
-        if not request.user.is_superuser:
+        #if not request.user.is_superuser:
+        if not is_admin(request.user):
             self.readonly_fields = ('admin',)
         return super(EquipmentAdmin, self).get_fields(request, obj, **kwargs)
 
@@ -424,7 +470,8 @@ class TicketAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         """Override the queryset to enforce permissions"""
         qstring = super(TicketAdmin, self).get_queryset(request)
-        if request.user.is_superuser:
+        #if request.user.is_superuser:
+        if is_admin(request.user):
             return qstring
         return qstring.filter(user=request.user)
 
@@ -442,8 +489,9 @@ class TicketAdmin(admin.ModelAdmin):
         """Adjust some values on save"""
         if getattr(obj, 'user', None) is None and obj.pk is None:
             obj.user = request.user
-        elif (obj.pk and obj.user != request.user and
-              not request.user.is_superuser):
+        #elif (obj.pk and obj.user != request.user and
+        #      not request.user.is_superuser):
+        elif (obj.pk and not is_admin(request.user)):
             raise PermissionDenied
         # if getattr(obj, 'comment', None):
         #     form.cleaned_data['comment'] = self.comment.all()

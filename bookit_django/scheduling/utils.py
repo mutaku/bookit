@@ -10,6 +10,7 @@ from django.conf import settings
 from django.core.mail import EmailMessage
 from django.contrib.sites.models import Site
 
+
 # Maybe move these to settings
 EMAIL_FROM = settings.DEFAULT_FROM_EMAIL
 
@@ -138,6 +139,14 @@ def get_superuser_emails():
         values_list('email', flat=True))
 
 
+def get_admin_emails():
+    """Generate a list of all equipment admins - entire pool,
+    not just actively assigned ones
+    """
+    return list(set(list(User.objects.filter(groups__name="equipment_admin").\
+                values_list('email', flat=True)) + get_superuser_emails()))
+
+
 def jsonify_schedule(qset):
     """Convert queryset to json string"""
     json_set = list()
@@ -184,7 +193,7 @@ def ticket_email(obj):
     a new ticket {0.id} for {0.equipment.name} with high priority: {0.priority}
     - {0.get_absolute_full_url}""".format(obj)
     subj = '{0.equipment.name} has a new ticket'.format(obj)
-    recips = get_superuser_emails()
+    recips = get_admin_emails()
     recips.append(obj.equipment.admin.email)
     EmailMessage(subj, msg, EMAIL_FROM, [], recips).send()
 
