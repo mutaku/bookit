@@ -180,9 +180,10 @@ def maintenance_announcement(obj):
 
 def maintenance_cancellation(obj):
     """Email user regarding an event cancellation for maint"""
-    msg = """Your event on {0.start_time} using {0.equipment.name}
+    msg = """Your event on {0.start_time} using the {0.equipment.name}
     has been cancelled due to an emergency maintenance procedure.
-    Please contact the admin for further information.""".format(obj)
+    Please contact the admin [{0.equipment.admin.email}] for further information."""\
+        .format(obj)
     subj = '{0.start_time} emergency maintenance cancellation'.format(obj)
     send_mail(subj, msg, EMAIL_FROM, [obj.user.email], fail_silently=False)
 
@@ -190,8 +191,9 @@ def maintenance_cancellation(obj):
 def ticket_email(obj):
     """Email superusers to inform of a new ticket or comment"""
     msg = """{0.user.username} has created/edited
-    a new ticket {0.id} for {0.equipment.name} with high priority: {0.priority}
-    - {0.get_absolute_full_url}""".format(obj)
+    a new ticket {0.id} for the {0.equipment.name} with high priority:
+    {0.priority}
+    {0.get_absolute_full_url}""".format(obj)
     subj = '{0.equipment.name} has a new ticket'.format(obj)
     recips = get_admin_emails()
     recips.append(obj.equipment.admin.email)
@@ -208,8 +210,8 @@ def ticket_status_toggle_email(obj):
 
 def message_email(obj):
     """Email all users about new message"""
-    msg = """{0.user.username} has created a new message
-    on {0.created}: {0.msg}
+    msg = """{0.user.username} has created a new message on {0.created}:
+    {0.msg}
     {0.get_absolute_full_url}""".format(obj)
     subj = 'New Bookit message from {0.user.username}'.format(obj)
     if obj.equipment:
@@ -226,7 +228,7 @@ def changed_event_mail(obj):
     {0.orig_start} {0.equipment.name} is now CANCELLED."""
     else:
         msg = """{0.user.username} has edited an event.
-    {0.orig_start} - {0.orig_end} on {0.equipment.name} is now
+    {0.orig_start} - {0.orig_end} on the {0.equipment.name} is now
     {0.start_timestring} - {0.end_timestring}."""
     msg = msg.format(obj)
     subj = '{0.equipment.name} - {0.orig_start} has changed'.format(obj)
@@ -237,7 +239,7 @@ def changed_event_mail(obj):
 def deleted_event_mail(obj):
     """Email all users of a deleted event"""
     msg = """{0.user.username} has deleted an event.
-    {0.start_timestring} - {0.end_timestring} on {0.equipment.name}
+    {0.start_timestring} - {0.end_timestring} on the {0.equipment.name}
     is now available for scheduling.""".format(obj)
     subj = '{0.equipment.name} - {0.orig_start} is now open'.format(obj)
     recips = get_all_user_emails(obj.equipment)
@@ -246,9 +248,9 @@ def deleted_event_mail(obj):
 
 def new_event_mail(obj):
     """Email user of their newly scheduled event"""
-    msg = """You have successfully booked {0.equipment.name}
-    for {0.start_timestring} - {0.end_timestring}. {0.get_absolute_full_url}
-    """.format(obj)
+    msg = """You have successfully booked the {0.equipment.name}
+    for {0.start_timestring} - {0.end_timestring}.
+    {0.get_absolute_full_url}""".format(obj)
     # Maybe add the admin URL to this email for convenience
     subj = 'You booked {0.equipment.name} starting {0.start_timestring}'.\
            format(obj)
