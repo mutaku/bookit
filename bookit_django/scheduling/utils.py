@@ -19,8 +19,10 @@ def day_past(year, month, day):
 	return date(year, month, day) < date.today()
 
 
-def check_add_link_status(year, month, day):
+def check_add_link_status(equipment_status, year, month, day):
 	"""Check whether we should provide an add link"""
+	if equipment_status is False:
+		return False
 	return not day_past(year, month, day)
 
 
@@ -79,10 +81,12 @@ class EventCalendar(calendar.HTMLCalendar):
 											 event.end_timestring_time)))
 					body.append('</a></li>')
 				body.append('</ul>')
-				if check_add_link_status(self.year, self.month, day):
+				if check_add_link_status(self.equipment_status,
+										 self.year, self.month, day):
 					body.append(self.day_link(date_string))
 				content = '{} {}'.format(day, ''.join(body))
-			elif check_add_link_status(self.year, self.month, day):
+			elif check_add_link_status(self.equipment_status,
+									   self.year, self.month, day):
 				content = '{} {}'.format(day, self.day_link(date_string))
 			else:
 				content = day
@@ -91,20 +95,21 @@ class EventCalendar(calendar.HTMLCalendar):
 
 	def formatmonthname(self, theyear, themonth, withyear=True):
 		""" Return a month name as a table row"""
-		if withyear:
-			date_string = '{} {}'.format(calendar.month_name[themonth],
-										 theyear)
-		else:
-			date_string = '{}'.format(calendar.month_name[themonth])
+		equipment_string = self.equipment_name +\
+			(" <span class=warning>OFFLINE<span>" if not self.equipment_status else '')
+		date_string = ' '.join([str(calendar.month_name[themonth]),
+								str(theyear) if withyear else ''])
 		return '<tr><th colspan="7" class="month">{}</th></tr>'.format(
-			' - '.join([date_string, self.equipment_name]))
+			' - '.join([date_string, equipment_string]))
 
-	def formatmonth(self, year, month, equipment, equipment_name):
+	def formatmonth(self, year, month, equipment):
 		"""Utilize supplied year and month"""
-		self.year, self.month, self.equipment, self.equipment_name = year, \
-																	 month, \
-																	 equipment, \
-																	 equipment_name
+		self.year, self.month, self.equipment,\
+		self.equipment_name, self.equipment_status = year, \
+													 month, \
+													 equipment.id, \
+													 equipment.name, \
+													 equipment.status
 		return super(EventCalendar, self).formatmonth(year, month)
 
 	def group_by_day(self, events):
