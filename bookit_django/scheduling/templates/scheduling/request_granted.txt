@@ -1,0 +1,11 @@
+Your request for usage and booking access to the {{ equipment.name }} has been granted.
+
+You may do so below:
+
+    {{ equipment_url }}
+
+Should you have any issues, please either contact the equipment admin or submit a support ticket.
+
+    {{ admin }} {{ equipment.admin.email }}
+
+    {{ ticket_url }}

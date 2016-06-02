@@ -1,0 +1,7 @@
+{{ user }} has reqeusted usage permissions on the {{ equipment.name }}.
+
+If you would like to grant {{ user }} access and booking ability to this instrument,
+you may do so simply by clicking the following link. {{ user }} will then be alerted
+by email of this granted permission change.
+
+    {{ url }}

@@ -1,0 +1,7 @@
+{{ user }} has created a new message on {{ message.created }}.
+
+Contents:
+
+    {{ message.msg }}
+
+    {{ message.get_absolute_full_url }}

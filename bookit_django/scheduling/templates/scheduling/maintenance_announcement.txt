@@ -1,0 +1,15 @@
+The {{ event.equipment.name }} has been scheduled for maintenance from
+{{ event.start_time }} until {{ event.end_time }} and will be unavailable
+for usage.
+
+If this overlaps with a booking you held, you will receive a separate email
+regarding the cancellation of your slot.
+
+Please remember that there may be unexpected delays in the completion of
+scheduled or emergency maintenance.
+
+If you have any questions, you may contact the instrument admin.
+
+    {{ admin }} {{ event.equipment.admin.email }}
+
+Sorry for the inconvenience.

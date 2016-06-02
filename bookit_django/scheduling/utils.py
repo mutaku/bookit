@@ -9,6 +9,7 @@ from itertools import groupby
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.contrib.sites.models import Site
+from django.template.loader import render_to_string
 
 # Maybe move these to settings
 EMAIL_FROM = settings.DEFAULT_FROM_EMAIL
@@ -173,144 +174,164 @@ def jsonify_schedule(qset):
 
 def maintenance_announcement(obj):
 	"""Email all users about maintenance"""
-	msg = """{0.equipment.name} has been scheduled for
-    emergency maintenance from {0.start_time} to {0.end_time}.
-    If this has affected your scheduled booking, you will receive
-    a separate email notifying you of this change.""".format(obj)
-	subj = """{0.equipment.name} has been scheduled for
-    emergency maintenance""".format(obj).replace('\n', '')
-	recips = get_all_user_emails(obj.equipment)
-	EmailMessage(subj, msg, EMAIL_FROM, [], recips).send()
+	context = {'event': obj,
+			   'admin': obj.equipment.admin.get_full_name()}
+	EmailMessage('The {0.equipment.name} has been scheduled for maintenance'.format(obj),
+				 render_to_string('scheduling/maintenance_announcement.txt', context),
+				 EMAIL_FROM,
+				 [],
+				 get_all_user_emails(obj.equipment)).send()
 
 
 def maintenance_cancellation(obj):
 	"""Email user regarding an event cancellation for maint"""
-	msg = """Your event on {0.start_time} using the {0.equipment.name}
-    has been cancelled due to an emergency maintenance procedure.
-    Please contact the admin [{0.equipment.admin.email}] for further information.""" \
-		.format(obj)
-	subj = '{0.start_time} emergency maintenance cancellation'.format(obj)
-	send_mail(subj, msg, EMAIL_FROM, [obj.user.email], fail_silently=False)
+	context = {'event': obj,
+			   'admin': obj.equipment.admin.get_full_name()}
+	send_mail('{0.start_time} on {0.equipment.name} cancelled - emergency maintenance'.format(obj),
+			  render_to_string('scheduling/maintenance_cancellation.txt', context),
+			  EMAIL_FROM,
+			  [obj.user.email],
+			  fail_silently=False)
 
 
-def ticket_email(obj):
+def ticket_mail(obj):
 	"""Email superusers to inform of a new ticket or comment"""
-	msg = """{0.user.username} has created/edited
-    a new ticket {0.id} for the {0.equipment.name} with high priority:
-    {0.priority}
-    {0.get_absolute_full_url}""".format(obj)
-	subj = '{0.equipment.name} has a new ticket'.format(obj)
-	recips = get_admin_emails()
-	recips.append(obj.equipment.admin.email)
-	EmailMessage(subj, msg, EMAIL_FROM, [], recips).send()
+	context = {'user': obj.user.get_full_name(),
+			   'ticket': obj}
+	EmailMessage('{0.equipment.name} has a new ticket'.format(obj),
+				 render_to_string('scheduling/ticket_mail.txt', context),
+				 EMAIL_FROM,
+				 [],
+				 get_admin_emails()).send()
 
 
-def ticket_status_toggle_email(obj):
+def ticket_status_toggle_mail(obj):
 	"""Email specific user regarding their updated ticket status"""
-	msg = """Your ticket created on {0.created} has changed
-    status to closed={0.status}""".format(obj)
-	subj = '{0.created} ticket updated'.format(obj)
-	send_mail(subj, msg, EMAIL_FROM, [obj.user.email], fail_silently=False)
+	context = {'ticket': obj}
+	send_mail('{0.created} re:{0.equipment.name} - ticket updated'.format(obj),
+			  render_to_string('scheduling/ticket_status_toggle_mail.txt', context),
+			  EMAIL_FROM,
+			  [obj.user.email],
+			  fail_silently=False)
 
 
-def message_email(obj):
+def message_mail(obj):
 	"""Email all users about new message"""
-	msg = """{0.user.username} has created a new message on {0.created}:
-    {0.msg}
-    {0.get_absolute_full_url}""".format(obj)
-	subj = 'New Bookit message from {0.user.username}'.format(obj)
-	if obj.equipment:
-		recips = get_all_user_emails(obj.equipment)
-	else:
-		recips = get_all_user_emails()
-	EmailMessage(subj, msg, EMAIL_FROM, [], recips).send()
+	context = {'user': obj.user.get_full_name(),
+			   'message': obj}
+	EmailMessage('New Bookit message from {0}'.format(context['user']),
+				 render_to_string('scheduling/message_mail.txt', context),
+				 EMAIL_FROM,
+				 [],
+				 get_all_user_emails() if not obj.equipment
+				 	else get_all_user_emails(obj.equipment)).send()
 
 
 def changed_event_mail(obj):
 	"""Email all users of an edited event"""
-	if obj.orig_start == obj.start_time and obj.status == 'C':
-		msg = """{0.user.username} has edited an event.
-    {0.orig_start} {0.equipment.name} is now CANCELLED."""
-	else:
-		msg = """{0.user.username} has edited an event.
-    {0.orig_start} - {0.orig_end} on the {0.equipment.name} is now
-    {0.start_timestring} - {0.end_timestring}."""
-	msg = msg.format(obj)
-	subj = '{0.equipment.name} - {0.orig_start} has changed'.format(obj)
-	recips = get_all_user_emails(obj.equipment)
-	EmailMessage(subj, msg, EMAIL_FROM, [], recips).send()
+	context = {'user': obj.user.get_full_name(),
+	 			'event': obj,
+	 			'url': 'http://{0}{1}'.format(
+		 			Site.objects.get(id=1).domain,
+		 			reverse('month_view', args=(obj.equipment.name,)))}
+	EmailMessage('{0.equipment.name} - {0.orig_start} has changed'.format(obj),
+				 render_to_string('scheduling/changed_event_mail.txt', context),
+				 EMAIL_FROM,
+				 [],
+				 get_all_user_emails(obj.equipment)).send()
 
 
 def deleted_event_mail(obj):
 	"""Email all users of a deleted event"""
-	msg = """{0.user.username} has deleted an event.
-    {0.start_timestring} - {0.end_timestring} on the {0.equipment.name}
-    is now available for scheduling.""".format(obj)
-	subj = '{0.equipment.name} - {0.orig_start} is now open'.format(obj)
-	recips = get_all_user_emails(obj.equipment)
-	EmailMessage(subj, msg, EMAIL_FROM, [], recips).send()
+	context = {'user': obj.user.get_full_name(),
+			   'event': obj,
+			   'url': 'http://{0}{1}'.format(
+				   Site.objects.get(id=1).domain,
+				   reverse('month_view', args=(obj.equipment.name,)))}
+	EmailMessage('{0.equipment.name} - {0.orig_start} is now open'.format(obj),
+				 render_to_string('scheduling/deleted_event_mail.txt', context),
+				 EMAIL_FROM,
+				 [],
+				 get_all_user_emails(obj.equipment)).send()
 
 
 def new_event_mail(obj):
 	"""Email user of their newly scheduled event"""
-	msg = """You have successfully booked the {0.equipment.name}
-    for {0.start_timestring} - {0.end_timestring}.
-    {0.get_absolute_full_url}""".format(obj)
-	# Maybe add the admin URL to this email for convenience
-	subj = 'You booked {0.equipment.name} starting {0.start_timestring}'. \
-		format(obj)
-	send_mail(subj, msg, EMAIL_FROM, [obj.user.email], fail_silently=False)
+	context = {'event': obj}
+	send_mail('You booked the {0.equipment.name} for {0.start_time}'.format(obj),
+			  render_to_string('scheduling/new_event_email.txt', context),
+			  EMAIL_FROM,
+			  [obj.user.email],
+			  fail_silently=False)
 
 
 def event_reminder_mail(obj):
 	"""Email user to remind them of their event today"""
-	msg = """This is a reminder email from Bookit that you are booked on
-    the {0.equipment.name} today at {0.start_timestring}.
-    {0.get_absolute_full_url}""".format(obj)
-	subj = 'Bookit reminder: {0.equipment.name} at {0.start_timestring}'. \
-		format(obj)
-	send_mail(subj, msg, EMAIL_FROM, [obj.user.email], fail_silently=False)
+	context = {'event': obj,
+			   'event_details': obj.hover_text.replace('&#10;', '\n\t')}
+	send_mail('Bookit reminder: {0.equipment.name} at {0.start_time}'.format(obj),
+		render_to_string('scheduling/event_reminder_email.txt', context),
+			  EMAIL_FROM,
+			  [obj.user.email],
+			  fail_silently=False)
 
 
 def alert_requested(equipment, user):
 	"""Email equipment admin about new user request"""
-	msg = """{0.username} has requested use of the {1.name}.
-    You can apply this request here: http://{2}{3}""". \
-		format(user, equipment,
-			   Site.objects.get(id=1).domain,
-			   reverse('activate-equipment-perms',
-					   args=(equipment.id, user.id,)))
-	subj = 'Equipment permissions request'
-	send_mail(subj, msg, EMAIL_FROM, [user.email], fail_silently=False)
+	context = {'user': user.get_full_name(),
+			   'equipment': equipment,
+			   'url': 'http://{0}{1}'.format(
+				   Site.objects.get(id=1).domain,
+				   reverse('activate-equipment-perms',
+						   args=(equipment.id, user.id,)))}
+	send_mail('{0} has requested access to the {1}'.format(
+					user.get_full_name(),
+					equipment.name),
+			  render_to_string('scheduling/alert_requested.txt', context),
+			  EMAIL_FROM,
+			  [user.email],
+			  fail_silently=False)
 
 
 def request_granted(equipment, user):
 	"""Email user that their instrument perms request has been granted"""
-	msg = """You have been granted permission to book time on the {0.name}.
-     You may do so here: http://{1}{2}""".\
-		format(equipment,
-				Site.objects.get(id=1).domain,
-				reverse('month_view', args=(equipment.name,)))
-	subj = 'Equipment permission request granted'
-	send_mail(subj, msg, EMAIL_FROM, [user.email], fail_silently=False)
+	context = {'equipment': equipment,
+			   'equipment_url': 'http://{0}{1}'.format(
+				   Site.objects.get(id=1).domain,
+				   reverse('month_view', args=(equipment.name,))),
+				'admin': equipment.admin.get_full_name(),
+				'ticket_url': 'http://{0}{1}?equipment={2}'.format(
+					Site.objects.get(id=1).domain,
+					reverse('admin:scheduling_ticket_add'),
+					equipment.id)}
+	send_mail('{0} usage permission request granted'.format(equipment.name),
+			  render_to_string('scheduling/request_granted.txt', context),
+			  EMAIL_FROM,
+			  [user.email],
+			  fail_silently=False)
 
 
 def equipment_online_email(equipment):
-	msg = """{0.name} has been placed back online and is available for use.
-	You may contine booking this instrument here: http://{1}{2}""".\
-		format(equipment,
-			   Site.objects.get(id=1).domain,
-			   reverse('month_view', args=(equipment.name,)))
-	subj = "{0.name} is back online.".format(equipment)
-	recips = list(set(get_all_user_emails(equipment) + get_admin_emails()))
-	EmailMessage(subj, msg, EMAIL_FROM, [], recips).send()
+	"""Email users and admins that an instrument is back online"""
+	context = {'equipment': equipment,
+			   'url': 'http://{0}{1}'.format(
+				   Site.objects.get(id=1).domain,
+				   reverse('month_view', args=(equipment.name,)))}
+	EmailMessage("{0.name} is back online.".format(equipment),
+				 render_to_string('scheduling/equipment_online_email.txt',
+								  context),
+				 EMAIL_FROM,
+				 [],
+				 list(set(get_all_user_emails(equipment) + get_admin_emails()))).send()
 
 
 def equipment_offline_email(equipment):
-	msg = """{0.name} has been taken offline until further notice.
-	If you have any particular concerns, you may contact the instrument
-	admin: {1} {0.admin.email}.""".format(equipment,
-										  equipment.admin.get_full_name())
-	subj = "{0.name} is now OFFLINE.".format(equipment)
-	recips = list(set(get_all_user_emails(equipment) + get_admin_emails()))
-	EmailMessage(subj, msg, EMAIL_FROM, [], recips).send()
+	"""Email users adn admins that an instrument has gone offline"""
+	context = {'equipment': equipment,
+			   'admin': equipment.admin.get_full_name()}
+	EmailMessage("{0.name} is now OFFLINE.".format(equipment),
+				 render_to_string('scheduling/equipment_offline_email.txt',
+								  context),
+				 EMAIL_FROM,
+				 [],
+				 list(set(get_all_user_emails(equipment) + get_admin_emails()))).send()
