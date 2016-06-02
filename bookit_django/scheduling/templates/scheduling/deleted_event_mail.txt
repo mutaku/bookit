@@ -1,0 +1,8 @@
+{{ user }} has cancelled an event that was booked from {{ event.start_time }}
+to {{ event.end_time }} on the {{ event.equipment.name }}.
+
+This time slot on the {{ event.equipment.name }} is now available for booking.
+
+If you would like to utilize this time, you may do so below:
+
+    {{ url }}

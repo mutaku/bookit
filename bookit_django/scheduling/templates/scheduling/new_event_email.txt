@@ -1,0 +1,9 @@
+You have successfully booked time on the {{ event.equipment.name }} for
+{{ event.start_time }} to {{ event.end_time }}.
+
+You can manage this booking at the following link:
+
+    {{ event.get_absolute_full_url }}
+
+If you should need to cancel or rebook this slot, please do so as soon as
+possible so as to allow for other users to absorb this slot.

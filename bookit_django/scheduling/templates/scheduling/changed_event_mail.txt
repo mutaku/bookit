@@ -1,0 +1,10 @@
+{{ user }} has changed an event that was booked from {{ event.orig_start }}
+to {{ event.orig_end }} on the {{ event.equipment.name }}.
+
+It is now scheduled for {{ event.start_time }} to {{ event.end_time }}.
+
+The original time slot on the {{ event.equipment.name }} is now available for booking.
+
+If you would like to utilize this time, you may do so below:
+
+    {{ url }}

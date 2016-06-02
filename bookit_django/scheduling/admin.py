@@ -13,7 +13,7 @@ from django.utils.translation import ugettext_lazy as _
 from .models import Event, Equipment, Message, Ticket, Comment, \
 	Service, Component, Brand, Model, Information, Tag
 from .utils import changed_event_mail, deleted_event_mail, \
-	new_event_mail, ticket_email, message_email, ticket_status_toggle_email, \
+	new_event_mail, ticket_mail, message_mail, ticket_status_toggle_mail, \
 	maintenance_announcement, equipment_offline_email, equipment_online_email
 
 
@@ -186,6 +186,7 @@ class EventAdmin(admin.ModelAdmin):
 		event_functions = {
 			'new_event': new_event_mail,
 			'maintenance': maintenance_announcement,
+			'cancelled_event': deleted_event_mail,
 			'changed_event': changed_event_mail,
 			'trivial_change': lambda x: None
 		}
@@ -205,12 +206,14 @@ class EventAdmin(admin.ModelAdmin):
 			save_method = 'maintenance'
 			save_method_string = "Maintenance scheduled {}".format(
 				obj.start_timestring)
+		elif ('status' in form.changed_data) and obj.status == 'C':
+			save_method = 'cancelled_event'
+			save_method_string = "Cancelled event start on {}".format(
+				obj.start_timestring)
 		elif ((any(f in ['start_time', 'end_time'] for
 				   f in form.changed_data) and
 				   all(x is not None for x in
-					   [obj.orig_start, obj.orig_end])) or
-				  (('status' in form.changed_data) and
-						   obj.status == 'C')):
+					   [obj.orig_start, obj.orig_end]))):
 			save_method = 'changed_event'
 			save_method_string = "changed from {} - {}".format(
 				obj.orig_start, obj.orig_end)
@@ -494,7 +497,7 @@ class TicketAdmin(admin.ModelAdmin):
 		"""Toggle ticket closed status"""
 		toggle_boolean(self, request, queryset, 'status')
 		for obj in queryset:
-			ticket_status_toggle_email(obj)
+			ticket_status_toggle_mail(obj)
 
 	def toggle_priority(self, request, queryset):
 		"""Toggle ticket priority"""
@@ -513,7 +516,7 @@ class TicketAdmin(admin.ModelAdmin):
 		super(TicketAdmin, self).save_model(request, obj, form, change)
 		self.message_user(request, "Ticket {}".format(obj.id),
 						  messages.SUCCESS)
-		ticket_email(obj)
+		ticket_mail(obj)
 
 
 @admin.register(Message)
@@ -532,7 +535,7 @@ class MessageAdmin(admin.ModelAdmin):
 		super(MessageAdmin, self).save_model(request, obj, form, change)
 		self.message_user(request, "New message {}".format(obj.id),
 						  messages.SUCCESS)
-		message_email(obj)
+		message_mail(obj)
 
 	def delete_model(self, request, obj):
 		"""Prevent deleting events that have already occurred"""

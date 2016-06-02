@@ -1,0 +1,11 @@
+This is a reminder email from Bookit that you are scheduled to use the {{ event.equipment.name }}
+tomorrow at {{ event.start_time }}.
+
+Details of this booking are listed below.
+
+    {{ event_details }}
+
+If you are no longer in need of this time slot, please cancel this event as soon as possible
+in order to allow for other users to absorb this time slot if needed. You may do so below:
+
+    {{ event.get_absolute_full_url }}

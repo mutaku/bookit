@@ -1,0 +1,8 @@
+The {{ equipment.name | title }} has been placed back online and is available for use.
+
+You may now rebook any cancelled bookings, or continue scheduling new bookings below:
+
+    {{ url }}
+
+Sorry for the inconvenience.
+

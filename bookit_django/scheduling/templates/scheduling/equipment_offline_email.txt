@@ -1,0 +1,12 @@
+The {{ equipment.name | title }} has been taken offline until further notice.
+
+You will receive an email once the instrument is back online.
+
+If you had any bookings, these will be cancelled. You will be able to reschedule
+these once the instrument is back online.
+
+Sorry for the inconvenience.
+
+If you have any particular concerns, you may contact the instrument admin:
+
+    {{ admin }} {{ equipment.admin.email }}

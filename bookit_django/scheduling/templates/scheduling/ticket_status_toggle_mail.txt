@@ -1,0 +1,6 @@
+Your ticket created on {{ ticket.created }} regarding the {{ ticket.equipment.name }}
+has undergone a status change.
+
+    Status = {% if ticket.status == True %}Closed{% else %}Open{% endif %}
+
+    {{ ticket.get_absolute_full_url }}

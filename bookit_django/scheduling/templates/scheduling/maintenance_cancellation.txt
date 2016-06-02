@@ -1,0 +1,8 @@
+Your booking on the {{ event.equipment.name }} on {{ event.start_time }}
+has been cancelled due to an emergency maintenance procedure.
+
+Please contact the instrument admin for further information.
+
+    {{ admin }} {{ event.equipment.admin.email }}
+
+Sorry for the inconvenience.
