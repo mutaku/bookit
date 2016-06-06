@@ -217,7 +217,7 @@ class EventAdmin(admin.ModelAdmin):
 				   f in form.changed_data) and
 				   all(x is not None for x in
 					   [obj.orig_start, obj.orig_end]))):
-			if request.user != obj.user:
+			if request.user != obj.user and not request.user.is_superuser:
 				raise PermissionDenied(request,
 									   'You are not the user.')
 			else:
