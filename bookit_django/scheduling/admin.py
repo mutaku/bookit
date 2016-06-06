@@ -6,9 +6,10 @@ from django.core.exceptions import PermissionDenied
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.admin import UserAdmin
 from django import forms
+from django.db import models
 from django.contrib.auth.models import User
 from django.forms.utils import to_current_timezone
-from django.forms.widgets import MultiWidget, DateInput, TimeInput
+from django.forms.widgets import MultiWidget, DateInput, TimeInput, SplitDateTimeWidget
 from django.utils.translation import ugettext_lazy as _
 from .models import Event, Equipment, Message, Ticket, Comment, \
 	Service, Component, Brand, Model, Information, Tag
@@ -32,7 +33,7 @@ def is_admin(user):
 	return False
 
 
-class CustomDateTimeSplitWidget(MultiWidget):
+class CustomDateTimeSplitWidget(SplitDateTimeWidget):
 	"""
 	A Widget that splits datetime input into two <input type="text"> boxes.
 	"""
@@ -42,7 +43,7 @@ class CustomDateTimeSplitWidget(MultiWidget):
 	def __init__(self, attrs=None, date_format=None, time_format=None):
 		widgets = (DateInput(attrs=attrs, format=date_format),
 				   TimeInput(attrs=attrs, format=time_format))
-		super(CustomDateTimeSplitWidget, self).__init__(widgets, attrs)
+		super(SplitDateTimeWidget, self).__init__(widgets, attrs)
 
 	def decompress(self, value):
 		if value:
@@ -67,8 +68,6 @@ class UserCreationFormEmail(UserCreationForm):
 												   max_length=30)
 		self.fields['password1'].required = False
 		self.fields['password2'].required = False
-		# If one field gets autocompleted but not the other, our 'neither
-		# password or both password' validation will be triggered.
 		self.fields['password1'].widget.attrs['autocomplete'] = 'off'
 		self.fields['password2'].widget.attrs['autocomplete'] = 'off'
 
@@ -90,23 +89,26 @@ class UserAdminMod(UserAdmin):
 	add_fieldsets = (
 		(None, {
 			'classes': ('wide',),
-			'fields': ('username', 'email', 'first_name', 'last_name',
-					   )
+			'fields': ('username', 'email', 'first_name', 'last_name',)
 		}),)
 
 
-# class EventForm(forms.ModelForm):
-#     """Tweak event form for validation"""
-#     def __init__(self, *args, **kwargs):
-#         self.user = kwargs.pop('user', None)
-#         super(EventForm, self).__init__(*args, **kwargs)
-#
-#     def clean(self):
-#         """Tweak cleaning validation"""
-#         if self.user not in self.equipment.users.all():
-#             raise ValidationError(
-#               'You do not have access to this instrument.')
-#         return self.cleaned_data
+class EventForm(forms.ModelForm):
+	"""Tweak event form for validation"""
+	class Meta:
+		fields = '__all__'
+		model = Event
+		widgets = {
+			'DateTimeField': CustomDateTimeSplitWidget,
+		}
+
+
+    # def clean(self):
+    #     """Tweak cleaning validation"""
+    #     if self.user not in self.equipment.users.all():
+    #         raise ValidationError(
+    #           'You do not have access to this instrument.')
+    #     return self.cleaned_data
 
 
 @admin.register(Event)
@@ -116,9 +118,10 @@ class EventAdmin(admin.ModelAdmin):
 	readonly_fields = ('elapsed_hours',)
 	actions = ['cancel_event']
 	exclude = ()
+	form = EventForm
 
 	# formfield_overrides = {
-	#     models.DateTimeField: {'widget': CustomDateTimeSplitWidget},
+	# 	models.DateTimeField: {'widget': CustomDateTimeSplitWidget},
 	# }
 
 	def get_list_filter(self, request):
@@ -214,9 +217,13 @@ class EventAdmin(admin.ModelAdmin):
 				   f in form.changed_data) and
 				   all(x is not None for x in
 					   [obj.orig_start, obj.orig_end]))):
-			save_method = 'changed_event'
-			save_method_string = "changed from {} - {}".format(
-				obj.orig_start, obj.orig_end)
+			if request.user != obj.user:
+				raise PermissionDenied(request,
+									   'You are not the user.')
+			else:
+				save_method = 'changed_event'
+				save_method_string = "changed from {} - {}".format(
+					obj.orig_start, obj.orig_end)
 		else:
 			save_method = 'trivial_change'
 			save_method_string = 'Adjusted event without changing booking time.'
