@@ -10,9 +10,20 @@ from django.conf import settings
 from django.core.mail import EmailMessage
 from django.contrib.sites.models import Site
 from django.template.loader import render_to_string
+import logging
 
 # Maybe move these to settings
 EMAIL_FROM = settings.DEFAULT_FROM_EMAIL
+
+logger = logging.getLogger(__name__)
+
+
+def is_admin(user):
+	"""Fine tune admin status check for model and view interactions"""
+	if user.is_superuser or user in User.objects.filter(
+			groups__name="equipment_admin"):
+		return True
+	return False
 
 
 def day_past(year, month, day):
@@ -180,7 +191,8 @@ def maintenance_announcement(obj):
 				 render_to_string('scheduling/maintenance_announcement.txt', context),
 				 EMAIL_FROM,
 				 [],
-				 get_all_user_emails(obj.equipment)).send()
+				 get_all_user_emails(obj.equipment)).send(fail_silently=False)
+	logger.info('Sent maintenance announcement [{}]'.format(obj))
 
 
 def maintenance_cancellation(obj):
@@ -192,6 +204,7 @@ def maintenance_cancellation(obj):
 			  EMAIL_FROM,
 			  [obj.user.email],
 			  fail_silently=False)
+	logger.info('Sent maintenance cancellation [{}]'.format(obj))
 
 
 def ticket_mail(obj):
@@ -202,7 +215,8 @@ def ticket_mail(obj):
 				 render_to_string('scheduling/ticket_mail.txt', context),
 				 EMAIL_FROM,
 				 [],
-				 get_admin_emails()).send()
+				 get_admin_emails()).send(fail_silently=False)
+	logger.info('Sent new ticket info [{}]'.format(obj))
 
 
 def ticket_status_toggle_mail(obj):
@@ -213,6 +227,7 @@ def ticket_status_toggle_mail(obj):
 			  EMAIL_FROM,
 			  [obj.user.email],
 			  fail_silently=False)
+	logger.info('Sent ticket status change [{}]'.format(obj))
 
 
 def message_mail(obj):
@@ -224,7 +239,8 @@ def message_mail(obj):
 				 EMAIL_FROM,
 				 [],
 				 get_all_user_emails() if not obj.equipment
-				 	else get_all_user_emails(obj.equipment)).send()
+				 	else get_all_user_emails(obj.equipment)).send(fail_silently=False)
+	logger.info('Sent message email alert [{}]'.format(obj))
 
 
 def changed_event_mail(obj):
@@ -238,7 +254,8 @@ def changed_event_mail(obj):
 				 render_to_string('scheduling/changed_event_mail.txt', context),
 				 EMAIL_FROM,
 				 [],
-				 get_all_user_emails(obj.equipment)).send()
+				 get_all_user_emails(obj.equipment)).send(fail_silently=False)
+	logger.info('Sent event changed email [{}]'.format(obj))
 
 
 def deleted_event_mail(obj):
@@ -252,7 +269,8 @@ def deleted_event_mail(obj):
 				 render_to_string('scheduling/deleted_event_mail.txt', context),
 				 EMAIL_FROM,
 				 [],
-				 get_all_user_emails(obj.equipment)).send()
+				 get_all_user_emails(obj.equipment)).send(fail_silently=False)
+	logger.info('Sent event deleted email [{}]'.format(obj))
 
 
 def new_event_mail(obj):
@@ -263,6 +281,7 @@ def new_event_mail(obj):
 			  EMAIL_FROM,
 			  [obj.user.email],
 			  fail_silently=False)
+	logger.info('Sent new event email [{}]'.format(obj))
 
 
 def event_reminder_mail(obj):
@@ -274,6 +293,7 @@ def event_reminder_mail(obj):
 			  EMAIL_FROM,
 			  [obj.user.email],
 			  fail_silently=False)
+	logger.info('Sent event reminder email [{}]'.format(obj))
 
 
 def alert_requested(equipment, user):
@@ -284,13 +304,14 @@ def alert_requested(equipment, user):
 				   Site.objects.get(id=1).domain,
 				   reverse('activate-equipment-perms',
 						   args=(equipment.id, user.id,)))}
-	send_mail('{0} has requested access to the {1}'.format(
-					user.get_full_name(),
-					equipment.name),
-			  render_to_string('scheduling/alert_requested.txt', context),
-			  EMAIL_FROM,
-			  [user.email],
-			  fail_silently=False)
+	EmailMessage('{0} has requested access to the {1}'.format(
+			 		user.get_full_name(),
+				 	equipment.name),
+				 	render_to_string('scheduling/alert_requested.txt', context),
+			  	 EMAIL_FROM,
+			  	 [],
+			 	 get_admin_emails()).send(fail_silently=False)
+	logger.info('Sent equipment request alert [{}-{}]'.format(equipment, user))
 
 
 def request_granted(equipment, user):
@@ -309,6 +330,7 @@ def request_granted(equipment, user):
 			  EMAIL_FROM,
 			  [user.email],
 			  fail_silently=False)
+	logger.info('Sent request granted alert [{}-{}]'.format(equipment, user))
 
 
 def equipment_online_email(equipment):
@@ -322,7 +344,9 @@ def equipment_online_email(equipment):
 								  context),
 				 EMAIL_FROM,
 				 [],
-				 list(set(get_all_user_emails(equipment) + get_admin_emails()))).send()
+				 list(set(get_all_user_emails(equipment) + get_admin_emails()))).send(
+		fail_silently=False)
+	logger.info('Sent equipment online alert [{}]'.format(equipment))
 
 
 def equipment_offline_email(equipment):
@@ -334,4 +358,6 @@ def equipment_offline_email(equipment):
 								  context),
 				 EMAIL_FROM,
 				 [],
-				 list(set(get_all_user_emails(equipment) + get_admin_emails()))).send()
+				 list(set(get_all_user_emails(equipment) + get_admin_emails()))).send(
+		fail_silently=False)
+	logger.info('Sent equipment offline alert [{}]'.format(equipment))
