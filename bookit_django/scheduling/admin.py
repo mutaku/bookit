@@ -13,7 +13,7 @@ from django.forms.widgets import MultiWidget, DateInput, TimeInput, SplitDateTim
 from django.utils.translation import ugettext_lazy as _
 from .models import Event, Equipment, Message, Ticket, Comment, \
 	Service, Component, Brand, Model, Information, Tag
-from .utils import changed_event_mail, deleted_event_mail, \
+from .utils import changed_event_mail, deleted_event_mail, is_admin,\
 	new_event_mail, ticket_mail, message_mail, ticket_status_toggle_mail, \
 	maintenance_announcement, equipment_offline_email, equipment_online_email
 
@@ -24,13 +24,6 @@ def toggle_boolean(modeladmin, request, queryset, field):
 		setattr(obj, field, not getattr(obj, field))
 		obj.save()
 
-
-def is_admin(user):
-	"""Fine tune admin status check for model and view interactions"""
-	if user.is_superuser or user in User.objects.filter(
-			groups__name="equipment_admin"):
-		return True
-	return False
 
 class CustomDateTimeSplitWidget(SplitDateTimeWidget):
 	"""
@@ -192,9 +185,15 @@ class EventAdmin(admin.ModelAdmin):
 			'changed_event': changed_event_mail,
 			'trivial_change': lambda x: None
 		}
-		if getattr(obj, 'user', None) is None:
+		save_user = getattr(obj, 'user', None)
+		if save_user is None:
 			obj.user = request.user
-		if obj.user not in obj.equipment.users.all():
+		elif request.user != save_user and not is_admin(request.user):
+			raise PermissionDenied(
+				request,
+				'You are not the user.'
+			)
+		if request.user not in obj.equipment.users.all():
 			raise PermissionDenied(
 				request,
 				'You are not authorized for this instrument.')
@@ -203,7 +202,6 @@ class EventAdmin(admin.ModelAdmin):
 		if obj.pk is None and not obj.maintenance:
 			save_method = 'new_event'
 			save_method_string = "Created {}".format(obj.start_timestring)
-		# elif obj.maintenance and request.user.is_superuser:
 		elif obj.maintenance and is_admin(request.user):
 			save_method = 'maintenance'
 			save_method_string = "Maintenance scheduled {}".format(

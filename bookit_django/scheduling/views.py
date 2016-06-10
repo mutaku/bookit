@@ -1,6 +1,6 @@
 from django.shortcuts import get_list_or_404, get_object_or_404
 from .utils import jsonify_schedule, EventCalendar, alert_requested, \
-	request_granted
+	request_granted, is_admin
 from django.http import HttpResponse
 from django.contrib import messages
 from django.views.generic.detail import DetailView
@@ -56,7 +56,7 @@ def activate_equipment_perms(request, equip_pk, user_pk):
 	equipment = get_object_or_404(Equipment, id=equip_pk)
 	user = get_object_or_404(User, id=user_pk)
 
-	if request.user.id == equipment.admin_id:
+	if is_admin(request.user):
 		equipment.users.add(user)
 		equipment.save()
 		request_granted(equipment, user)
