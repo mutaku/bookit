@@ -32,7 +32,6 @@ def is_admin(user):
 		return True
 	return False
 
-
 class CustomDateTimeSplitWidget(SplitDateTimeWidget):
 	"""
 	A Widget that splits datetime input into two <input type="text"> boxes.
@@ -118,7 +117,7 @@ class EventAdmin(admin.ModelAdmin):
 	readonly_fields = ('elapsed_hours',)
 	actions = ['cancel_event']
 	exclude = ()
-	form = EventForm
+	# form = EventForm
 
 	# formfield_overrides = {
 	# 	models.DateTimeField: {'widget': CustomDateTimeSplitWidget},
@@ -149,7 +148,7 @@ class EventAdmin(admin.ModelAdmin):
 	def cancel_event(self, request, queryset):
 		"""Cancel an upcoming event"""
 		queryset.filter(status__in=['A', 'H'],
-						expired=False).update(status='C')
+    				expired=False).update(status='C')
 
 	def has_delete_permission(self, request, obj=None):
 		"""Adjust deletion permissions to use cancel"""
